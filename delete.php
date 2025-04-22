@@ -1,44 +1,69 @@
 <?php
 session_start();
-include 'functions.php';
+require_once 'functions.php';
 
-if (!isset($_GET['type']) || !isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header('Location: index.php');
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
     exit;
 }
 
-$type = $_GET['type'];
-$id = (int)$_GET['id'];
-
-if ($type !== 'library' && $type !== 'document') {
-    header('Location: index.php');
+if (isset($_GET['id']) && !isset($_GET['type'])) {
+    $documentId = (int)$_GET['id'];
+    $result = deleteDocument($documentId);
+    
+    $redirectUrl = 'index.php';
+    if (isset($_GET['library_id'])) {
+        $redirectUrl = 'library.php?id=' . (int)$_GET['library_id'];
+    }
+    
+    header("Location: $redirectUrl");
     exit;
 }
 
-try {
-    if ($type === 'library') {
-        deleteDocumentsInLibrary($id);
-        
-        deleteLibrary($id);
-        
-        header('Location: index.php?deleted=library');
+if (isset($_GET['id']) && isset($_GET['type']) && $_GET['type'] === 'library') {
+    $libraryId = (int)$_GET['id'];
+    $library = getLibraryById($libraryId);
+    
+    if (!$library) {
+        header('Location: index.php');
         exit;
     }
     
-    if ($type === 'document') {
-        $libraryId = getDocumentLibraryId($id);
-        
-        deleteDocument($id);
-        
-        $redirectUrl = $libraryId 
-            ? "library.php?id={$libraryId}&deleted=document" 
-            : "index.php?deleted=document";
-            
-        header("Location: $redirectUrl");
+    $permission = getUserLibraryPermission($_SESSION['user_id'], $libraryId);
+    if ($permission !== 'owner') {
+        header('Location: index.php');
         exit;
     }
-} catch (PDOException $e) {
-    error_log("Adatbázis hiba: " . $e->getMessage());
-    header('Location: index.php?error=delete');
-    exit;
+    
+    try {
+        deleteDocumentsInLibrary($libraryId);
+        
+        $subLibraries = getSubLibraries($libraryId);
+        foreach ($subLibraries as $subLibrary) {
+            deleteLibraryRecursive($subLibrary['LIBRARY_ID']);
+        }
+        
+        $conn->prepare("DELETE FROM ChildLibraries WHERE library_id = :id OR child_library_id = :id")
+             ->execute([':id' => $libraryId]);
+        
+        $conn->prepare("DELETE FROM ParentLibraries WHERE library_id = :id")
+             ->execute([':id' => $libraryId]);
+        
+        $conn->prepare("DELETE FROM LibraryShares WHERE library_id = :id")
+             ->execute([':id' => $libraryId]);
+        
+        deleteLibrary($libraryId);
+        
+        $returnId = isset($_GET['return']) ? (int)$_GET['return'] : null;
+        if ($returnId) {
+            header("Location: library.php?id=$returnId");
+        } else {
+            header("Location: index.php");
+        }
+        exit;
+    } catch (Exception $e) {
+        error_log("Error deleting library: " . $e->getMessage());
+        die("Error deleting library. See error log for details.");
+    }
 }
+?>

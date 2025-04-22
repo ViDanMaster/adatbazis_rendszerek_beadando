@@ -2,15 +2,19 @@
 session_start();
 require_once 'functions.php';
 
-// Ellenőrizzük, hogy van-e érvényes ID
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: index.php');
     exit;
 }
 
 $libraryId = (int)$_GET['id'];
+$userId = $_SESSION['user_id'];
 
-// Mappa adatainak lekérése
 $library = getLibraryById($libraryId);
 
 if (!$library) {
@@ -18,8 +22,25 @@ if (!$library) {
     exit;
 }
 
-// Dokumentumok lekérése
+$userPermission = getUserLibraryPermission($userId, $libraryId);
+
+if ($userPermission === null) {
+    header('Location: index.php');
+    exit;
+}
+
+$isOwner = ($userPermission === 'owner');
+$canEdit = ($userPermission === 'owner' || $userPermission === 'edit');
+$canRead = true;
+
+$parentLibraryId = getParentLibraryId($libraryId);
+$parentLibrary = null;
+if ($parentLibraryId) {
+    $parentLibrary = getLibraryById($parentLibraryId);
+}
+
 $documents = getDocumentsByLibraryId($libraryId);
+$subLibraries = getSubLibraries($libraryId);
 ?>
 
 <!DOCTYPE html>
@@ -28,7 +49,6 @@ $documents = getDocumentsByLibraryId($libraryId);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?php echo htmlspecialchars($library['NAME']); ?> - Drive Klón</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -38,49 +58,85 @@ $documents = getDocumentsByLibraryId($libraryId);
 
   <div class="main-content">
     <div class="breadcrumbs">
-      <a href="index.php">Saját fájlok</a> &gt; <span><?php echo htmlspecialchars($library['NAME']); ?></span>
+      <a href="index.php">Saját fájlok</a>
+      <?php if ($parentLibrary): ?>
+        &gt; <a href="library.php?id=<?php echo $parentLibraryId; ?>"><?php echo htmlspecialchars($parentLibrary['NAME']); ?></a>
+      <?php endif; ?>
+      &gt; <span><?php echo htmlspecialchars($library['NAME']); ?></span>
     </div>
     
     <div class="library-header">
-      <h1><?php echo htmlspecialchars($library['NAME']); ?></h1>
+      <h1>
+        <?php echo htmlspecialchars($library['NAME']); ?>
+        <?php if (!$isOwner): ?>
+          <span class="shared-badge">(<?php echo $userPermission === 'edit' ? 'Szerkeszthető' : 'Olvasható'; ?>)</span>
+        <?php endif; ?>
+      </h1>
       <div class="library-actions">
-        <a href="add_document.php?library_id=<?php echo $libraryId; ?>" class="btn-primary">Új fájl</a>
-        <a href="edit_library.php?id=<?php echo $libraryId; ?>" class="btn-secondary">Szerkesztés</a>
+        <?php if ($canEdit): ?>
+          <a href="add_document.php?library_id=<?php echo $libraryId; ?>" class="btn-primary">Új fájl</a>
+          <?php if ($isOwner): ?>
+            <a href="add_library.php?parent_id=<?php echo $libraryId; ?>" class="btn-primary">Új almappa</a>
+            <a href="edit_library.php?id=<?php echo $libraryId; ?>" class="btn-secondary">Szerkesztés</a>
+          <?php endif; ?>
+        <?php endif; ?>
       </div>
     </div>
 
     <div class="drive-container">
-      <?php if (empty($documents)): ?>
+      <?php if (empty($subLibraries) && empty($documents)): ?>
         <div class="empty-state">
-          <p>Ez a mappa még üres. Hozz létre új fájlokat a tároláshoz!</p>
+          <p>Ez a mappa még üres. Hozz létre új mappákat vagy fájlokat a tároláshoz!</p>
         </div>
       <?php else: ?>
-        <div class="section-header">Fájlok</div>
-        <div class="files-grid">
-          <?php foreach ($documents as $doc): ?>
-            <div class="item document-item" data-id="<?php echo $doc['DOCUMENT_ID']; ?>">
-              <div class="item-icon">📄</div>
-              <div class="item-details">
-                <div class="item-name"><?php echo htmlspecialchars($doc['NAME']); ?></div>
+        <?php if (!empty($subLibraries)): ?>
+          <div class="section-header">Almappák</div>
+          <div class="files-grid">
+            <?php foreach ($subLibraries as $subLib): ?>
+              <div class="item folder-item" data-id="<?php echo $subLib['LIBRARY_ID']; ?>">
+                <div class="item-icon">📁</div>
+                <div class="item-details">
+                  <div class="item-name"><?php echo htmlspecialchars($subLib['NAME']); ?></div>
+                </div>
               </div>
-            </div>
-          <?php endforeach; ?>
-        </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+        
+        <?php if (!empty($documents)): ?>
+          <div class="section-header">Fájlok</div>
+          <div class="files-grid">
+            <?php foreach ($documents as $doc): ?>
+              <div class="item document-item" data-id="<?php echo $doc['DOCUMENT_ID']; ?>">
+                <div class="item-icon">📄</div>
+                <div class="item-details">
+                  <div class="item-name"><?php echo htmlspecialchars($doc['NAME']); ?></div>
+                </div>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
   </div>
 
-  <!-- Kontextus menü -->
   <div id="context-menu" class="context-menu">
     <ul>
       <li id="open-item"><i class="menu-icon">📄</i>Megnyitás</li>
       <li id="edit-item"><i class="menu-icon">✏️</i>Szerkesztés</li>
+      <li id="share-item"><i class="menu-icon">🔗</i>Megosztás</li>
       <li id="delete-item"><i class="menu-icon">🗑️</i>Törlés</li>
     </ul>
   </div>
 
   <script>
-    // Elem megnyitása kattintásra
+    document.querySelectorAll('.folder-item').forEach(folder => {
+      folder.addEventListener('click', () => {
+        const folderId = folder.getAttribute('data-id');
+        window.location.href = `library.php?id=${folderId}`;
+      });
+    });
+
     document.querySelectorAll('.document-item').forEach(doc => {
       doc.addEventListener('click', () => {
         const docId = doc.getAttribute('data-id');
@@ -88,23 +144,27 @@ $documents = getDocumentsByLibraryId($libraryId);
       });
     });
 
-    // Kontextus menü
     const contextMenu = document.getElementById('context-menu');
     let targetItem = null;
 
-    // Kontextus menü megjelenítése jobb klikk esetén
     function showContextMenu(e, item) {
       e.preventDefault();
       targetItem = item;
       
-      // Pozícionálás
       contextMenu.style.left = `${e.pageX}px`;
       contextMenu.style.top = `${e.pageY}px`;
+      
+      const shareOption = document.getElementById('share-item');
+      if (item.classList.contains('document-item')) {
+        shareOption.style.display = 'none';
+      } else {
+        shareOption.style.display = 'flex';
+      }
       
       contextMenu.classList.add('active');
     }
 
-    document.querySelectorAll('.document-item').forEach(item => {
+    document.querySelectorAll('.document-item, .folder-item').forEach(item => {
       item.addEventListener('contextmenu', (e) => {
         showContextMenu(e, item);
       });
@@ -116,23 +176,41 @@ $documents = getDocumentsByLibraryId($libraryId);
 
     document.getElementById('open-item').addEventListener('click', () => {
       if (targetItem) {
-        const docId = targetItem.getAttribute('data-id');
-        window.location.href = `view_document.php?id=${docId}`;
+        targetItem.click();
       }
     });
 
     document.getElementById('edit-item').addEventListener('click', () => {
       if (targetItem) {
-        const docId = targetItem.getAttribute('data-id');
-        window.location.href = `edit_document.php?id=${docId}`;
+        if (targetItem.classList.contains('folder-item')) {
+          const folderId = targetItem.getAttribute('data-id');
+          window.location.href = `edit_library.php?id=${folderId}`;
+        } else {
+          const docId = targetItem.getAttribute('data-id');
+          window.location.href = `edit_document.php?id=${docId}`;
+        }
+      }
+    });
+
+    document.getElementById('share-item').addEventListener('click', () => {
+      if (targetItem && targetItem.classList.contains('folder-item')) {
+        const folderId = targetItem.getAttribute('data-id');
+        window.location.href = `share_library.php?id=${folderId}`;
       }
     });
 
     document.getElementById('delete-item').addEventListener('click', () => {
       if (targetItem) {
-        const docId = targetItem.getAttribute('data-id');
-        if (confirm('Biztosan törölni szeretnéd ezt a dokumentumot?')) {
-          window.location.href = `delete_document.php?id=${docId}&library_id=<?php echo $libraryId; ?>`;
+        if (targetItem.classList.contains('folder-item')) {
+          const folderId = targetItem.getAttribute('data-id');
+          if (confirm('Biztosan törölni szeretnéd ezt a mappát és annak tartalmát?')) {
+            window.location.href = `delete.php?type=library&id=${folderId}&return=<?php echo $libraryId; ?>`;
+          }
+        } else {
+          const docId = targetItem.getAttribute('data-id');
+          if (confirm('Biztosan törölni szeretnéd ezt a dokumentumot?')) {
+            window.location.href = `delete.php?id=${docId}&library_id=<?php echo $libraryId; ?>`;
+          }
         }
       }
     });

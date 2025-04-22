@@ -16,7 +16,7 @@ CREATE TABLE Libraries (
 CREATE TABLE Documents (
     document_id NUMBER PRIMARY KEY,
     user_id NUMBER NOT NULL,
-    library_id NUMBER NOT NULL,
+    library_id NUMBER,
     name VARCHAR2(255) NOT NULL,
     file_path VARCHAR2(255),
     file_type VARCHAR2(100),
@@ -118,6 +118,22 @@ CREATE TABLE EventDocuments (
     FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
 );
 
+CREATE SEQUENCE LIBRARY_SEQ
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE
+  NOCYCLE;
+
+CREATE SEQUENCE DOCUMENT_SEQ
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE
+  NOCYCLE;
+  
+CREATE SEQUENCE PARENTLIB_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE CHILDLIB_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE LIBSHARE_SEQ START WITH 1 INCREMENT BY 1
+
 
 INSERT INTO Users (user_id, username, email, password, profile_picture) VALUES
 (1, 'user1', 'user1@example.com', 'hashedpassword1', 'pic1.jpg'),
@@ -146,13 +162,6 @@ INSERT INTO DocumentShares (share_id, user_id, document_id, permission) VALUES
 (3, 4, 3, 'read'),
 (4, 5, 4, 'edit'),
 (5, 1, 5, 'read');
-
-INSERT INTO LibraryHierarchy (hierarchy_id, parent_library_id, child_library_id) VALUES
-(1, NULL, 1),
-(2, 1, 2),
-(3, 2, 3),
-(4, 3, 4),
-(5, 4, 5);
 
 INSERT INTO LibraryShares (share_id, user_id, library_id, permission) VALUES
 (1, 2, 1, 'read'),

@@ -1,4 +1,3 @@
-/* Alap stílusok */
 body {
     font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     margin: 0;
@@ -18,7 +17,16 @@ h1 {
     margin-bottom: 24px;
 }
 
-/* Felső navigációs sáv */
+.logo-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo-link:hover {
+    text-decoration: none;
+    color: #4285F4;
+}
+
 .top-navbar {
     display: flex;
     justify-content: space-between;
@@ -27,11 +35,11 @@ h1 {
     color: #3c4043;
     padding: 0 24px;
     height: 64px;
-    width: 100%;
     position: fixed;
     top: 0;
+    right: 0;
     left: 0;
-    z-index: 1000;
+    z-index: 600;
     box-shadow: 0 1px 2px rgba(60, 64, 67, 0.1);
 }
 
@@ -85,6 +93,7 @@ h1 {
 .user-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
 }
 
 .user-actions .username {
@@ -119,7 +128,6 @@ h1 {
     background-color: #e8eaed;
 }
 
-/* Oldalsó navigáció */
 .navbar {
     width: 256px;
     height: calc(100vh - 64px);
@@ -173,13 +181,11 @@ h1 {
     color: #1a73e8;
 }
 
-/* Fő tartalom */
 .main-content {
     margin-left: 256px;
     padding: 24px 32px;
 }
 
-/* Google Drive stílusú megjelenítés */
 .drive-container {
     width: 100%;
 }
@@ -245,7 +251,6 @@ h1 {
     max-width: 100%;
 }
 
-/* Üres állapot */
 .empty-state {
     display: flex;
     justify-content: center;
@@ -262,7 +267,6 @@ h1 {
     font-size: 14px;
 }
 
-/* Hibaüzenet */
 .error-message {
     background-color: #fce8e6;
     color: #ea4335;
@@ -272,7 +276,6 @@ h1 {
     font-size: 14px;
 }
 
-/* Kontextus menü */
 .context-menu {
     position: absolute;
     background-color: white;
@@ -311,7 +314,6 @@ h1 {
     font-size: 16px;
 }
 
-/* Linkek és gombok */
 a {
     text-decoration: none;
     color: #1a73e8;
@@ -336,7 +338,6 @@ button:hover {
     background-color: #1765cc;
 }
 
-/* Formok és űrlapok */
 .form-container {
     background-color: white;
     border-radius: 8px;
@@ -415,7 +416,6 @@ button:hover {
     background-color: #f1f3f4;
 }
 
-/* Üzenetek */
 .success-message {
     background-color: #e6f4ea;
     color: #137333;
@@ -434,7 +434,6 @@ button:hover {
     font-size: 14px;
 }
 
-/* Breadcrumbs */
 .breadcrumbs {
     margin-bottom: 16px;
     font-size: 14px;
@@ -451,7 +450,6 @@ button:hover {
     text-decoration: underline;
 }
 
-/* Dokumentum nézet */
 .document-header {
     display: flex;
     justify-content: space-between;
@@ -477,3 +475,52 @@ button:hover {
     min-height: 400px;
     line-height: 1.6;
 }
+
+.share-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  .share-table th, .share-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .share-table th {
+    font-weight: 500;
+    color: #5f6368;
+  }
+  .permission-read {
+    color: #1a73e8;
+  }
+  .permission-edit {
+    color: #188038;
+  }
+  .button-group {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-primary {
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .btn-secondary {
+    background-color: #f1f3f4;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .permission-select {
+    padding: 4px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+  .edit-form {
+    display: flex;
+    align-items: center;
+  }

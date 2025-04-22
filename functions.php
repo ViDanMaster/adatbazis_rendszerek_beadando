@@ -33,16 +33,29 @@ function deleteLibrary($library_id) {
 
 function addDocument($user_id, $library_id, $name, $file_path, $file_type, $file_size) {
     global $conn;
-    $stmt = $conn->prepare("INSERT INTO Documents (document_id, user_id, library_id, name, file_path, file_type, file_size, created_at, updated_at) 
-                           VALUES (DOCUMENT_SEQ.NEXTVAL, :user_id, :library_id, :name, :file_path, :file_type, :file_size, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
-    $stmt->execute([
-        ':user_id' => $user_id, 
-        ':library_id' => $library_id, 
-        ':name' => $name,
-        ':file_path' => $file_path,
-        ':file_type' => $file_type,
-        ':file_size' => $file_size
-    ]);
+    
+    if ($library_id === null) {
+        $stmt = $conn->prepare("INSERT INTO Documents (document_id, user_id, library_id, name, file_path, file_type, file_size, created_at, updated_at) 
+                               VALUES (DOCUMENT_SEQ.NEXTVAL, :user_id, NULL, :name, :file_path, :file_type, :file_size, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+        $stmt->execute([
+            ':user_id' => $user_id,
+            ':name' => $name,
+            ':file_path' => $file_path,
+            ':file_type' => $file_type,
+            ':file_size' => $file_size
+        ]);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO Documents (document_id, user_id, library_id, name, file_path, file_type, file_size, created_at, updated_at) 
+                               VALUES (DOCUMENT_SEQ.NEXTVAL, :user_id, :library_id, :name, :file_path, :file_type, :file_size, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+        $stmt->execute([
+            ':user_id' => $user_id, 
+            ':library_id' => $library_id, 
+            ':name' => $name,
+            ':file_path' => $file_path,
+            ':file_type' => $file_type,
+            ':file_size' => $file_size
+        ]);
+    }
 }
 
 function updateDocument($document_id, $name, $library_id = null) {
@@ -63,8 +76,34 @@ function updateDocument($document_id, $name, $library_id = null) {
 
 function deleteDocument($document_id) {
     global $conn;
-    $stmt = $conn->prepare("DELETE FROM Documents WHERE document_id = :document_id");
-    $stmt->execute([':document_id' => $document_id]);
+    
+    try {
+        $stmt = $conn->prepare("SELECT file_path FROM Documents WHERE document_id = :document_id");
+        $stmt->execute([':document_id' => $document_id]);
+        $file = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $stmt = $conn->prepare("DELETE FROM Documents WHERE document_id = :document_id");
+        $stmt->execute([':document_id' => $document_id]);
+        
+        if ($file && isset($file['FILE_PATH'])) {
+            $filePath = $file['FILE_PATH'];
+            if (file_exists($filePath)) {
+                unlink($filePath);
+                return ['success' => true, 'message' => 'Document and file deleted successfully'];
+            } else {
+                error_log("File not found while deleting document: " . $filePath);
+                return ['success' => true, 'message' => 'Document deleted, but file was not found on disk'];
+            }
+        }
+        
+        return ['success' => true, 'message' => 'Document deleted successfully'];
+    } catch (PDOException $e) {
+        error_log("Database error deleting document: " . $e->getMessage());
+        return ['success' => false, 'message' => 'Database error while deleting document'];
+    } catch (Exception $e) {
+        error_log("Error deleting file: " . $e->getMessage());
+        return ['success' => false, 'message' => 'Error deleting physical file'];
+    }
 }
 
 function getDocumentById($documentId) {
@@ -130,11 +169,17 @@ function registerUser($username, $password, $email, $name) {
     }
 }
 
-function getLibraries() {
+function getLibraries($user_id = null) {
     global $conn;
     
     try {
-        return $conn->query("SELECT * FROM Libraries ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+        if ($user_id !== null) {
+            $stmt = $conn->prepare("SELECT * FROM Libraries WHERE user_id = :user_id ORDER BY name");
+            $stmt->execute([':user_id' => $user_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            return $conn->query("SELECT * FROM Libraries ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (PDOException $e) {
         error_log("Adatbázis hiba a mappák lekérésekor: " . $e->getMessage());
         return [];
@@ -167,11 +212,17 @@ function getDocumentsByLibraryId($libraryId) {
     }
 }
 
-function getRootDocuments() {
+function getRootDocuments($user_id = null) {
     global $conn;
     
     try {
-        return $conn->query("SELECT * FROM Documents WHERE library_id IS NULL ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+        if ($user_id !== null) {
+            $stmt = $conn->prepare("SELECT * FROM Documents WHERE library_id IS NULL AND user_id = :user_id ORDER BY name");
+            $stmt->execute([':user_id' => $user_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            return $conn->query("SELECT * FROM Documents WHERE library_id IS NULL ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (PDOException $e) {
         error_log("Adatbázis hiba a gyökér dokumentumok lekérésekor: " . $e->getMessage());
         return [];
@@ -213,12 +264,30 @@ function deleteDocumentsInLibrary($libraryId) {
     global $conn;
     
     try {
+        $stmt = $conn->prepare("SELECT document_id, file_path FROM Documents WHERE library_id = :id");
+        $stmt->execute([':id' => $libraryId]);
+        $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
         $stmt = $conn->prepare("DELETE FROM Documents WHERE library_id = :id");
         $stmt->execute([':id' => $libraryId]);
-        return true;
+        
+        $deletedCount = 0;
+        foreach ($documents as $document) {
+            if (isset($document['FILE_PATH']) && file_exists($document['FILE_PATH'])) {
+                if (unlink($document['FILE_PATH'])) {
+                    $deletedCount++;
+                }
+            }
+        }
+        
+        return [
+            'success' => true, 
+            'message' => "Deleted {$deletedCount} files from library",
+            'total' => count($documents)
+        ];
     } catch (PDOException $e) {
-        error_log("Adatbázis hiba a dokumentumok törlésekor: " . $e->getMessage());
-        return false;
+        error_log("Database error deleting documents in library: " . $e->getMessage());
+        return ['success' => false, 'message' => 'Database error deleting documents'];
     }
 }
 
@@ -234,5 +303,311 @@ function getDocumentLibraryId($documentId) {
         error_log("Adatbázis hiba a dokumentum mappájának lekérésekor: " . $e->getMessage());
         return null;
     }
+}
+
+function getSubLibraries($parentLibraryId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("
+            SELECT l.* 
+            FROM Libraries l
+            JOIN ChildLibraries c ON l.library_id = c.child_library_id
+            WHERE c.library_id = :parent_id
+            ORDER BY l.name
+        ");
+        $stmt->execute([':parent_id' => $parentLibraryId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Adatbázis hiba az almappák lekérésekor: " . $e->getMessage());
+        return [];
+    }
+}
+
+function addLibraryWithParent($userId, $name, $parentLibraryId = null) {
+    global $conn;
+    
+    try {
+        $conn->beginTransaction();
+        
+        $newLibraryId = null;
+        $stmt = $conn->prepare("INSERT INTO Libraries (library_id, user_id, name) VALUES (LIBRARY_SEQ.NEXTVAL, :user_id, :name)");
+        $stmt->execute([':user_id' => $userId, ':name' => $name]);
+        
+        $stmt = $conn->query("SELECT LIBRARY_SEQ.CURRVAL FROM DUAL");
+        $newLibraryId = $stmt->fetchColumn();
+        
+        if (!$newLibraryId) {
+            throw new Exception("Failed to get new library ID");
+        }
+        
+        if ($parentLibraryId) {
+            $stmt = $conn->prepare("SELECT library_id FROM Libraries WHERE library_id = :id");
+            $stmt->execute([':id' => $parentLibraryId]);
+            if (!$stmt->fetch()) {
+                throw new Exception("Parent library does not exist");
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO ParentLibraries (parent_id, library_id, parent_library_id) VALUES (PARENTLIB_SEQ.NEXTVAL, :library_id, :parent_id)");
+            $stmt->execute([
+                ':library_id' => $newLibraryId,
+                ':parent_id' => $parentLibraryId
+            ]);
+            
+            $stmt = $conn->prepare("INSERT INTO ChildLibraries (child_id, library_id, child_library_id) VALUES (CHILDLIB_SEQ.NEXTVAL, :parent_id, :library_id)");
+            $stmt->execute([
+                ':parent_id' => $parentLibraryId,
+                ':library_id' => $newLibraryId
+            ]);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO ParentLibraries (parent_id, library_id, parent_library_id) VALUES (PARENTLIB_SEQ.NEXTVAL, :library_id, NULL)");
+            $stmt->execute([':library_id' => $newLibraryId]);
+        }
+        
+        $conn->commit();
+        return $newLibraryId;
+    } catch (PDOException $e) {
+        $conn->rollBack();
+        error_log("PDO Error in addLibraryWithParent: " . $e->getMessage());
+        throw $e;
+    } catch (Exception $e) {
+        $conn->rollBack();
+        error_log("Error in addLibraryWithParent: " . $e->getMessage());
+        throw $e;
+    }
+}
+
+function getParentLibraryId($libraryId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("SELECT parent_library_id FROM ParentLibraries WHERE library_id = :id");
+        $stmt->execute([':id' => $libraryId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['PARENT_LIBRARY_ID'] : null;
+    } catch (PDOException $e) {
+        error_log("Adatbázis hiba a szülő mappa lekérésekor: " . $e->getMessage());
+        return null;
+    }
+}
+
+function getRootLibraries($userId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("
+            SELECT l.* 
+            FROM Libraries l
+            JOIN ParentLibraries p ON l.library_id = p.library_id
+            WHERE l.user_id = :user_id 
+            AND p.parent_library_id IS NULL
+            ORDER BY l.name
+        ");
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Adatbázis hiba a gyökér mappák lekérésekor: " . $e->getMessage());
+        return [];
+    }
+}
+
+function shareLibrary($libraryId, $sharedWithUserId, $permission = 'read') {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM LibraryShares 
+                                WHERE library_id = :library_id AND user_id = :user_id");
+        $stmt->execute([
+            ':library_id' => $libraryId,
+            ':user_id' => $sharedWithUserId
+        ]);
+        
+        if ($stmt->fetchColumn() > 0) {
+            $stmt = $conn->prepare("UPDATE LibraryShares 
+                                   SET permission = :permission 
+                                   WHERE library_id = :library_id AND user_id = :user_id");
+            $stmt->execute([
+                ':permission' => $permission,
+                ':library_id' => $libraryId,
+                ':user_id' => $sharedWithUserId
+            ]);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO LibraryShares (share_id, library_id, user_id, permission) 
+                                   VALUES (LIBSHARE_SEQ.NEXTVAL, :library_id, :user_id, :permission)");
+            $stmt->execute([
+                ':library_id' => $libraryId,
+                ':user_id' => $sharedWithUserId,
+                ':permission' => $permission
+            ]);
+        }
+        
+        $subLibraries = getSubLibraries($libraryId);
+        foreach ($subLibraries as $subLibrary) {
+            shareLibrary($subLibrary['LIBRARY_ID'], $sharedWithUserId, $permission);
+        }
+        
+        return true;
+    } catch (PDOException $e) {
+        error_log("Sharing library error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getSharedLibraries($userId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("
+            SELECT l.*, s.permission, u.username as shared_by
+            FROM Libraries l
+            JOIN LibraryShares s ON l.library_id = s.library_id
+            JOIN Users u ON l.user_id = u.user_id
+            WHERE s.user_id = :user_id
+            ORDER BY l.name
+        ");
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error getting shared libraries: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getAllUsersExcept($currentUserId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("SELECT user_id, username, email FROM Users WHERE user_id != :current_user_id ORDER BY username");
+        $stmt->execute([':current_user_id' => $currentUserId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error getting users: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getLibraryShares($libraryId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("
+            SELECT s.*, u.username, u.email 
+            FROM LibraryShares s
+            JOIN Users u ON s.user_id = u.user_id
+            WHERE s.library_id = :library_id
+        ");
+        $stmt->execute([':library_id' => $libraryId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error getting library shares: " . $e->getMessage());
+        return [];
+    }
+}
+
+function removeLibraryShare($libraryId, $userId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("DELETE FROM LibraryShares WHERE library_id = :library_id AND user_id = :user_id");
+        $stmt->execute([
+            ':library_id' => $libraryId,
+            ':user_id' => $userId
+        ]);
+        
+        $subLibraries = getSubLibraries($libraryId);
+        foreach ($subLibraries as $subLibrary) {
+            removeLibraryShare($subLibrary['LIBRARY_ID'], $userId);
+        }
+        
+        return true;
+    } catch (PDOException $e) {
+        error_log("Error removing library share: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getUserLibraryPermission($userId, $libraryId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("SELECT user_id FROM Libraries WHERE library_id = :library_id");
+        $stmt->execute([':library_id' => $libraryId]);
+        $libraryOwner = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($libraryOwner && $libraryOwner['USER_ID'] == $userId) {
+            return 'owner';
+        }
+        
+        $stmt = $conn->prepare("SELECT permission FROM LibraryShares WHERE library_id = :library_id AND user_id = :user_id");
+        $stmt->execute([
+            ':library_id' => $libraryId,
+            ':user_id' => $userId
+        ]);
+        $share = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($share) {
+            return $share['PERMISSION'];
+        }
+        
+        return null;
+    } catch (PDOException $e) {
+        error_log("Error checking library permissions: " . $e->getMessage());
+        return null;
+    }
+}
+
+function getEditableLibraries($userId) {
+    global $conn;
+    
+    try {
+        $ownLibraries = getLibraries($userId);
+        
+        $stmt = $conn->prepare("
+            SELECT l.*, u.username as owner_name, 'shared' as type
+            FROM Libraries l
+            JOIN LibraryShares s ON l.library_id = s.library_id
+            JOIN Users u ON l.user_id = u.user_id
+            WHERE s.user_id = :user_id AND s.permission = 'edit'
+            ORDER BY l.name
+        ");
+        $stmt->execute([':user_id' => $userId]);
+        $sharedLibraries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($ownLibraries as &$lib) {
+            $lib['type'] = 'own';
+        }
+
+        foreach ($sharedLibraries as &$lib) {
+            $lib['type'] = $lib['TYPE'];
+            unset($lib['TYPE']);
+        }
+
+        return array_merge($ownLibraries, $sharedLibraries);
+    } catch (PDOException $e) {
+        error_log("Error getting editable libraries: " . $e->getMessage());
+        return [];
+    }
+}
+
+function deleteLibraryRecursive($libraryId) {
+    global $conn;
+    
+    deleteDocumentsInLibrary($libraryId);
+    
+    $subLibraries = getSubLibraries($libraryId);
+    foreach ($subLibraries as $subLibrary) {
+        deleteLibraryRecursive($subLibrary['LIBRARY_ID']);
+    }
+    
+    $conn->prepare("DELETE FROM ChildLibraries WHERE library_id = :id OR child_library_id = :id")
+         ->execute([':id' => $libraryId]);
+    
+    $conn->prepare("DELETE FROM ParentLibraries WHERE library_id = :id")
+         ->execute([':id' => $libraryId]);
+    
+    $conn->prepare("DELETE FROM LibraryShares WHERE library_id = :id")
+         ->execute([':id' => $libraryId]);
+    
+    deleteLibrary($libraryId);
 }
 ?>

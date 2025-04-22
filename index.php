@@ -1,5 +1,11 @@
 <?php
 session_start();
+
+if (!isset($_SESSION['user_id'])) {
+  header('Location: login.php');
+  exit;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="hu">
@@ -7,7 +13,6 @@ session_start();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Google Drive Klón</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -26,10 +31,12 @@ session_start();
       }
 
       try {
-          $libraries = getLibraries();
-          if (empty($libraries)) {
-              echo "<div class='empty-state'><p>Még nincsenek mappák. Hozz létre egy új mappát a tároláshoz!</p></div>";
-          } else {
+          $libraries = getRootLibraries($_SESSION['user_id']);
+          
+          $hasContent = false;
+          
+          if (!empty($libraries)) {
+              $hasContent = true;
               echo "<div class='section-header'>Mappák</div>";
               echo "<div class='files-grid'>";
               foreach ($libraries as $lib) {
@@ -41,21 +48,26 @@ session_start();
                   echo "</div>";
               }
               echo "</div>";
+          }
               
-              $rootDocs = getRootDocuments();
-              if (!empty($rootDocs)) {
-                  echo "<div class='section-header'>Fájlok</div>";
-                  echo "<div class='files-grid'>";
-                  foreach ($rootDocs as $doc) {
-                      echo "<div class='item document-item' data-id='{$doc['DOCUMENT_ID']}'>";
-                      echo "<div class='item-icon'>📄</div>";
-                      echo "<div class='item-details'>";
-                      echo "<div class='item-name'>" . htmlspecialchars($doc['NAME']) . "</div>";
-                      echo "</div>";
-                      echo "</div>";
-                  }
+          $rootDocs = getRootDocuments($_SESSION['user_id']);
+          if (!empty($rootDocs)) {
+              $hasContent = true;
+              echo "<div class='section-header'>Fájlok</div>";
+              echo "<div class='files-grid'>";
+              foreach ($rootDocs as $doc) {
+                  echo "<div class='item document-item' data-id='{$doc['DOCUMENT_ID']}'>";
+                  echo "<div class='item-icon'>📄</div>";
+                  echo "<div class='item-details'>";
+                  echo "<div class='item-name'>" . htmlspecialchars($doc['NAME']) . "</div>";
+                  echo "</div>";
                   echo "</div>";
               }
+              echo "</div>";
+          }
+          
+          if (!$hasContent) {
+              echo "<div class='empty-state'><p>Még nincsenek mappák vagy fájlok. Hozz létre egy új mappát vagy tölts fel egy fájlt!</p></div>";
           }
       } catch (PDOException $e) {
           error_log("Adatbázis hiba: " . $e->getMessage());
@@ -69,6 +81,7 @@ session_start();
     <ul>
       <li id="open-item"><i class="menu-icon">📂</i>Megnyitás</li>
       <li id="edit-item"><i class="menu-icon">✏️</i>Szerkesztés</li>
+      <li id="share-item"><i class="menu-icon">🔗</i>Megosztás</li>
       <li id="delete-item"><i class="menu-icon">🗑️</i>Törlés</li>
     </ul>
   </div>
@@ -98,6 +111,13 @@ session_start();
       contextMenu.style.left = `${e.pageX}px`;
       contextMenu.style.top = `${e.pageY}px`;
       
+      const shareOption = document.getElementById('share-item');
+      if (item.classList.contains('document-item')) {
+        shareOption.style.display = 'none';
+      } else {
+        shareOption.style.display = 'flex';
+      }
+      
       contextMenu.classList.add('active');
     }
 
@@ -125,6 +145,13 @@ session_start();
         } else {
           window.location.href = `edit_document.php?id=${id}`;
         }
+      }
+    });
+
+    document.getElementById('share-item').addEventListener('click', () => {
+      if (targetItem && targetItem.classList.contains('folder-item')) {
+        const folderId = targetItem.getAttribute('data-id');
+        window.location.href = `share_library.php?id=${folderId}`;
       }
     });
 

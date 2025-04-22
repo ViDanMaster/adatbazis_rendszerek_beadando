@@ -8,27 +8,76 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $error = '';
-if (isset($_GET['error'])) {
-    switch ($_GET['error']) {
-        case 'empty_name':
-            $error = 'A fájl neve nem lehet üres!';
-            break;
-        case 'upload_failed':
-            $error = 'A fájl feltöltése sikertelen!';
-            break;
-        case 'invalid_file':
-            $error = 'Érvénytelen fájlformátum!';
-            break;
-        case 'file_too_large':
-            $error = 'A fájl mérete túl nagy!';
-            break;
-        case 'database':
-            $error = 'Adatbázis hiba történt!';
-            break;
+$libraryId = isset($_GET['library_id']) ? (int)$_GET['library_id'] : null;
+
+$libraries = getEditableLibraries($_SESSION['user_id']);
+
+$currentLibrary = null;
+$canEdit = false;
+
+if ($libraryId) {
+    $currentLibrary = getLibraryById($libraryId);
+    if ($currentLibrary) {
+        $userPermission = getUserLibraryPermission($_SESSION['user_id'], $libraryId);
+        $canEdit = ($userPermission === 'owner' || $userPermission === 'edit');
+    }
+    
+    if (!$currentLibrary || !$canEdit) {
+        header('Location: index.php');
+        exit;
     }
 }
 
-$libraryId = isset($_GET['library_id']) ? (int)$_GET['library_id'] : '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $libraryId = isset($_POST['library_id']) && !empty($_POST['library_id']) ? (int)$_POST['library_id'] : null;
+    
+    if ($libraryId) {
+        $userPermission = getUserLibraryPermission($_SESSION['user_id'], $libraryId);
+        $canEdit = ($userPermission === 'owner' || $userPermission === 'edit');
+        
+        if (!$canEdit) {
+            $error = 'Nincs jogosultságod ehhez a mappához fájlt feltölteni!';
+        }
+    }
+    
+    if (empty($error) && (!isset($_FILES['uploaded_file']) || $_FILES['uploaded_file']['error'] !== UPLOAD_ERR_OK)) {
+        $error = 'A fájl feltöltése sikertelen!';
+    } elseif (empty($error)) {
+        $file = $_FILES['uploaded_file'];
+        $fileName = $file['name'];
+        $fileType = $file['type'];
+        $fileSize = $file['size'];
+        $tempPath = $file['tmp_name'];
+        
+        $userId = $_SESSION['user_id'];
+        $uploadsDir = "uploads/user_{$userId}/";
+        
+        if (!file_exists($uploadsDir)) {
+            mkdir($uploadsDir, 0777, true);
+        }
+        
+        $newFileName = uniqid() . '_' . $fileName;
+        $destination = $uploadsDir . $newFileName;
+        
+        if (move_uploaded_file($tempPath, $destination)) {
+            try {
+                addDocument($_SESSION['user_id'], $libraryId, $fileName, $destination, $fileType, $fileSize);
+                
+                if ($libraryId) {
+                    header("Location: library.php?id=$libraryId&uploaded=1");
+                } else {
+                    header("Location: index.php?uploaded=1");
+                }
+                exit;
+            } catch (PDOException $e) {
+                $error = 'Adatbázis hiba történt a fájl mentése közben: ' . htmlspecialchars($e->getMessage());
+                error_log("File upload database error: " . $e->getMessage());
+            }
+        } else {
+            $error = 'A fájl mentése sikertelen!';
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -37,7 +86,6 @@ $libraryId = isset($_GET['library_id']) ? (int)$_GET['library_id'] : '';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Új fájl feltöltése - Drive Klón</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -47,59 +95,61 @@ $libraryId = isset($_GET['library_id']) ? (int)$_GET['library_id'] : '';
 
   <div class="main-content">
     <div class="breadcrumbs">
-      <a href="index.php">Saját fájlok</a> &gt; <span>Új fájl feltöltése</span>
+      <a href="index.php">Saját fájlok</a>
+      <?php if ($currentLibrary): ?>
+        &gt; <a href="library.php?id=<?php echo $libraryId; ?>"><?php echo htmlspecialchars($currentLibrary['NAME']); ?></a>
+      <?php endif; ?>
+      &gt; <span>Új fájl feltöltése</span>
     </div>
     
     <h1>Új fájl feltöltése</h1>
     
     <?php if (!empty($error)): ?>
-      <div class="alert alert-danger"><?php echo $error; ?></div>
+      <div class="error-message"><?php echo $error; ?></div>
     <?php endif; ?>
     
     <div class="form-container">
-      <form method="post" action="save_document.php" enctype="multipart/form-data">
+      <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="uploaded_file">Válassz fájlt:</label>
+          <input type="file" id="uploaded_file" name="uploaded_file" required>
+        </div>
+        
         <div class="form-group">
           <label for="library_id">Mappa:</label>
           <select id="library_id" name="library_id">
-            <option value="">-- Nincs mappában --</option>
+            <optgroup label="Saját mappák">
+            <option value="">Gyökér mappa</option>
+              <?php foreach ($libraries as $lib): ?>
+                <?php if ($lib['type'] === 'own'): ?>
+                  <option value="<?php echo $lib['LIBRARY_ID']; ?>" <?php echo ($libraryId == $lib['LIBRARY_ID']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($lib['NAME']); ?>
+                  </option>
+                <?php endif; ?>
+              <?php endforeach; ?>
+            </optgroup>
+            
+            <?php if (isset($lib['type']) && $lib['type'] === 'shared'): ?>
+              <optgroup label="Velem megosztott mappák">
+                <?php foreach ($libraries as $lib): ?>
+                  <?php if ($lib['type'] === 'shared'): ?>
+                    <option value="<?php echo $lib['LIBRARY_ID']; ?>" <?php echo ($libraryId == $lib['LIBRARY_ID']) ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($lib['NAME']); ?> (<?php echo htmlspecialchars($lib['OWNER_NAME']); ?>)
+                    </option>
+                  <?php endif; ?>
+                <?php endforeach; ?>
+              </optgroup>
+            <?php endif; ?>
           </select>
         </div>
         
-        <div class="form-group">
-          <label for="file">Fájl kiválasztása:</label>
-          <input type="file" id="file" name="uploaded_file" required>
-        </div>
-        
         <div class="form-actions">
-          <a href="index.php" class="btn-secondary">Mégse</a>
+          <a href="<?php echo $libraryId ? 'library.php?id=' . $libraryId : 'index.php'; ?>" class="btn-secondary">Mégse</a>
           <button type="submit" class="btn-primary">Feltöltés</button>
         </div>
       </form>
     </div>
   </div>
-
-  <script>
-    fetch('get_libraries.php')
-      .then(response => response.json())
-      .then(libraries => {
-        const select = document.getElementById('library_id');
-        const urlParams = new URLSearchParams(window.location.search);
-        const selectedLibraryId = urlParams.get('library_id');
-        
-        libraries.forEach(lib => {
-          const option = document.createElement('option');
-          option.value = lib.LIBRARY_ID;
-          option.textContent = lib.NAME;
-          
-          if (selectedLibraryId && selectedLibraryId == lib.LIBRARY_ID) {
-            option.selected = true;
-          }
-          
-          select.appendChild(option);
-        });
-      })
-      .catch(error => console.error('Hiba a mappák betöltésekor:', error));
-  </script>
 
 </body>
 </html>
