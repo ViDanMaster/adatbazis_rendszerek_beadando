@@ -13,6 +13,13 @@ try {
     die("Connection failed: " . $e->getMessage());
 }
 
+function getUserData($userId) {
+    global $conn;
+    $stmt = $conn->prepare("SELECT * FROM Users WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $userId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 function addLibrary($user_id, $name) {
     global $conn;
     $stmt = $conn->prepare("INSERT INTO Libraries (library_id, user_id, name) VALUES (LIBRARY_SEQ.NEXTVAL, :user_id, :name)");
@@ -56,22 +63,6 @@ function addDocument($user_id, $library_id, $name, $file_path, $file_type, $file
             ':file_size' => $file_size
         ]);
     }
-}
-
-function updateDocument($document_id, $name, $library_id = null) {
-    global $conn;
-    $sql = "UPDATE Documents SET name = :name, updated_at = CURRENT_TIMESTAMP";
-    $params = [':name' => $name, ':document_id' => $document_id];
-    
-    if ($library_id !== null) {
-        $sql .= ", library_id = :library_id";
-        $params[':library_id'] = $library_id;
-    }
-    
-    $sql .= " WHERE document_id = :document_id";
-    
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
 }
 
 function deleteDocument($document_id) {
@@ -290,20 +281,6 @@ function deleteDocumentsInLibrary($libraryId) {
     } catch (PDOException $e) {
         error_log("Database error deleting documents in library: " . $e->getMessage());
         return ['success' => false, 'message' => 'Database error deleting documents'];
-    }
-}
-
-function getDocumentLibraryId($documentId) {
-    global $conn;
-    
-    try {
-        $stmt = $conn->prepare("SELECT library_id FROM Documents WHERE document_id = :id");
-        $stmt->execute([':id' => $documentId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? $result['LIBRARY_ID'] : null;
-    } catch (PDOException $e) {
-        error_log("Adatbázis hiba a dokumentum mappájának lekérésekor: " . $e->getMessage());
-        return null;
     }
 }
 

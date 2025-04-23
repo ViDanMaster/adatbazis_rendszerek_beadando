@@ -2,7 +2,6 @@
 session_start();
 include 'functions.php';
 
-// Ellenőrizzük, hogy van-e ID paraméter
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: index.php');
     exit;
@@ -10,7 +9,6 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $documentId = (int)$_GET['id'];
 
-// Adatok lekérése
 $document = getDocumentById($documentId);
 
 if (!$document) {
@@ -18,10 +16,8 @@ if (!$document) {
     exit;
 }
 
-// Mappák lekérése a legördülőhöz
 $libraries = getLibraries();
 
-// Űrlap feldolgozása
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
@@ -36,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($result) {
                 $message = '<div class="success-message">A dokumentum sikeresen frissítve!</div>';
-                // Frissítjük a lokális változót is
                 $document['NAME'] = $name;
                 if ($content !== null) {
                     $document['FILE_PATH'] = $content;

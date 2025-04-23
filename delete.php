@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (isset($_GET['id']) && !isset($_GET['type'])) {
+if (isset($_GET['id']) && (!isset($_GET['type']) || $_GET['type'] === 'document')) {
     $documentId = (int)$_GET['id'];
     $result = deleteDocument($documentId);
     
@@ -36,23 +36,7 @@ if (isset($_GET['id']) && isset($_GET['type']) && $_GET['type'] === 'library') {
     }
     
     try {
-        deleteDocumentsInLibrary($libraryId);
-        
-        $subLibraries = getSubLibraries($libraryId);
-        foreach ($subLibraries as $subLibrary) {
-            deleteLibraryRecursive($subLibrary['LIBRARY_ID']);
-        }
-        
-        $conn->prepare("DELETE FROM ChildLibraries WHERE library_id = :id OR child_library_id = :id")
-             ->execute([':id' => $libraryId]);
-        
-        $conn->prepare("DELETE FROM ParentLibraries WHERE library_id = :id")
-             ->execute([':id' => $libraryId]);
-        
-        $conn->prepare("DELETE FROM LibraryShares WHERE library_id = :id")
-             ->execute([':id' => $libraryId]);
-        
-        deleteLibrary($libraryId);
+        deleteLibraryRecursive($libraryId);
         
         $returnId = isset($_GET['return']) ? (int)$_GET['return'] : null;
         if ($returnId) {
