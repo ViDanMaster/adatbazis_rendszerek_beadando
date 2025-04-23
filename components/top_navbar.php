@@ -3,7 +3,6 @@
     <a href="index.php" class="logo-link"><h2>Goofle</h2></a>
   </div>
   <div class="top-nav-links">
-    <a href="calendar.php">Naptár</a>
     <a href="groups.php">Csoportok</a>
   </div>
   <div class="user-actions">

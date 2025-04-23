@@ -526,3 +526,15 @@ button:hover {
     display: flex;
     align-items: center;
   }
+  
+  .calendar {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  .fc .fc-button.fc-today-button {
+    display: none;
+}
+.fc .fc-toolbar-title{
+    font-size: 1.2em !important;
+    margin: 0px;
+}

@@ -589,4 +589,63 @@ function deleteLibraryRecursive($libraryId) {
     
     deleteLibrary($libraryId);
 }
+
+
+function addCalendar($user_id, $name, $color) {
+    global $conn;
+        $stmt = $conn->prepare("INSERT INTO Calendars (calendar_id, user_id, name, color) 
+                               VALUES (CALENDAR_SEQ.NEXTVAL, :user_id, :name, :color)");
+        $stmt->execute([
+            ':user_id' => $user_id,
+            ':name' => $name,
+            ':color' => $color,
+        ]);
+}
+
+function deleteCalendar($calendar_id) {
+    global $conn;
+    try {        
+        $stmt = $conn->prepare("DELETE FROM Calendars WHERE calendar_id = :calendar_id");
+        $stmt->execute([':calendar_id' => $calendar_id]);
+        return ['success' => true, 'message' => 'Calendar deleted successfully'];
+    } catch (PDOException $e) {
+        error_log("Database error deleting calendar: " . $e->getMessage());
+        return ['success' => false, 'message' => 'Database error while deleting calendar'];
+    } 
+}
+
+function updateCalendar($calendar_id, $name, $color) {
+    global $conn;
+    
+    try {
+        $sql = "UPDATE Calendars SET name = :name, color = :color";
+        $params = [
+            ':name' => $name,
+            ':calendar_id' => $calendar_id
+        ];
+        
+        $sql .= " WHERE calendar_id = :calendar_id";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Adatbázis hiba a naptár frissítésekor: " . $e->getMessage());
+        return false;
+    }
+}
+function getCalendar($user_id) {
+    global $conn;
+    try {
+        
+         $sql = "SELECT calendar_id, name, color FROM Calendars";
+        $result = $conn->query($sql);
+        return $result;
+    } catch (PDOException $e) {
+        error_log("Adatbázis hiba a gyökér mappák lekérésekor: " . $e->getMessage());
+        return [];
+    }
+}
+
+
 ?>
