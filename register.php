@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Regisztráció</title>
+    <title>Regisztráció - Goofle</title>
     <link rel="stylesheet" href="css/register.css">
 </head>
 <body>
