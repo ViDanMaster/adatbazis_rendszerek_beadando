@@ -142,14 +142,14 @@ CREATE SEQUENCE USERGROUP_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE GROUPMEMBER_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE EVENTDOC_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 
-INSERT INTO Users (user_id, username, email, password, profile_picture) VALUES
+/*INSERT INTO Users (user_id, username, email, password, profile_picture) VALUES
 (1, 'user1', 'user1@example.com', 'hashedpassword1', 'pic1.jpg'),
 (2, 'user2', 'user2@example.com', 'hashedpassword2', 'pic2.jpg'),
 (3, 'user3', 'user3@example.com', 'hashedpassword3', 'pic3.jpg'),
 (4, 'user4', 'user4@example.com', 'hashedpassword4', 'pic4.jpg'),
 (5, 'user5', 'user5@example.com', 'hashedpassword5', 'pic5.jpg');
 
-/*INSERT INTO Libraries (library_id, user_id, name) VALUES
+INSERT INTO Libraries (library_id, user_id, name) VALUES
 (1, 1, 'Library 1'),
 (2, 2, 'Library 2'),
 (3, 3, 'Library 3'),
