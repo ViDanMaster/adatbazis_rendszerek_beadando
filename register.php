@@ -11,17 +11,16 @@ $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
-    $name = $_POST['name'] ?? '';
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     $password2 = $_POST['password2'] ?? '';
 
-    if (empty($username) || empty($email) || empty($password) || empty($password2) || empty($name)) {
+    if (empty($username) || empty($email) || empty($password) || empty($password2)) {
         $message = "<p class='error'>Minden mező kitöltése kötelező!</p>";
     } elseif ($password !== $password2) {
         $message = "<p class='error'>A jelszavak nem egyeznek!</p>";
     } else {
-        $regResult = registerUser($username, $password, $email, $name);
+        $regResult = registerUser($username, $password, $email);
         if ($regResult['success']) {
             $user = $regResult['user'];
             $_SESSION['user_id'] = $user['USER_ID'];
@@ -47,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <form method="post">
     <h2>Regisztráció</h2>
     <input type="text" name="username" placeholder="Felhasználónév" required>
-    <input type="text" name="name" placeholder="Teljes név" required>
     <input type="email" name="email" placeholder="Email" required>
     <input type="password" name="password" placeholder="Jelszó" required>
     <input type="password" name="password2" placeholder="Jelszó újra" required>

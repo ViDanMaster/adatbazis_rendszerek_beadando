@@ -57,9 +57,11 @@ h1 {
     width: 24px;
     height: 24px;
     margin-right: 8px;
-    background-color: #4285F4;
-    border-radius: 2px;
+    background: conic-gradient(#4285F4 0deg 90deg, white 90deg 180deg, #FBBC05 180deg 270deg, #34A853 270deg 360deg);
+    border-radius: 50%;
+    position: relative;
 }
+
 
 .top-nav-links a {
     color: #5f6368;

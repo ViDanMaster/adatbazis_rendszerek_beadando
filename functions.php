@@ -143,7 +143,7 @@ function authenticateUser($username, $password) {
     }
 }
 
-function registerUser($username, $password, $email, $name) {
+function registerUser($username, $password, $email) {
     global $conn;
     
     try {
@@ -153,13 +153,12 @@ function registerUser($username, $password, $email, $name) {
             return ['success' => false, 'message' => 'A felhasználónév már foglalt!'];
         }
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO Users (user_id, username, password, email, name, created_date) 
-                               VALUES (USER_SEQ.NEXTVAL, :username, :password, :email, :name, SYSDATE)");
+        $stmt = $conn->prepare("INSERT INTO Users (user_id, username, password, email) 
+                               VALUES (USER_SEQ.NEXTVAL, :username, :password, :email)");
         $stmt->execute([
             ':username' => $username,
             ':password' => $hashedPassword,
-            ':email' => $email,
-            ':name' => $name
+            ':email' => $email
         ]);
         $stmt = $conn->prepare("SELECT user_id, username FROM Users WHERE username = :username");
         $stmt->execute([':username' => $username]);
@@ -168,7 +167,7 @@ function registerUser($username, $password, $email, $name) {
         return ['success' => true, 'user' => $user];
     } catch (PDOException $e) {
         error_log("Adatbázis hiba a regisztráció során: " . $e->getMessage());
-        return ['success' => false, 'message' => 'Adatbázis hiba történt!'];
+        return ['success' => false, 'message' => 'Adatbázis hiba történt: ' . $e->getMessage()];
     }
 }
 

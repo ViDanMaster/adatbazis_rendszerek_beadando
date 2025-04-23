@@ -1,6 +1,6 @@
 <header class="top-navbar">
   <div class="logo">
-    <a href="index.php" class="logo-link"><h2>Drive Klón</h2></a>
+    <a href="index.php" class="logo-link"><h2>Goofle</h2></a>
   </div>
   <div class="top-nav-links">
     <a href="calendar.php">Naptár</a>
