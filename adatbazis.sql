@@ -130,10 +130,17 @@ CREATE SEQUENCE DOCUMENT_SEQ
   NOCACHE
   NOCYCLE;
   
-CREATE SEQUENCE PARENTLIB_SEQ START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE CHILDLIB_SEQ START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE LIBSHARE_SEQ START WITH 1 INCREMENT BY 1
-
+CREATE SEQUENCE PARENTLIB_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE CHILDLIB_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE LIBSHARE_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE USER_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE DOCSHARE_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE EVENT_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE CALENDAR_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE CALSHARE_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE USERGROUP_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE GROUPMEMBER_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE EVENTDOC_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 
 INSERT INTO Users (user_id, username, email, password, profile_picture) VALUES
 (1, 'user1', 'user1@example.com', 'hashedpassword1', 'pic1.jpg'),
@@ -142,19 +149,19 @@ INSERT INTO Users (user_id, username, email, password, profile_picture) VALUES
 (4, 'user4', 'user4@example.com', 'hashedpassword4', 'pic4.jpg'),
 (5, 'user5', 'user5@example.com', 'hashedpassword5', 'pic5.jpg');
 
-INSERT INTO Libraries (library_id, user_id, name) VALUES
+/*INSERT INTO Libraries (library_id, user_id, name) VALUES
 (1, 1, 'Library 1'),
 (2, 2, 'Library 2'),
 (3, 3, 'Library 3'),
 (4, 4, 'Library 4'),
 (5, 5, 'Library 5');
 
-INSERT INTO Documents (document_id, user_id, library_id, name) VALUES
-(1, 1, 1, 'Document 1'),
-(2, 2, 2, 'Document 2'),
-(3, 3, 3, 'Document 3'),
-(4, 4, 4, 'Document 4'),
-(5, 5, 5, 'Document 5');
+INSERT INTO Documents (document_id, user_id, library_id, name, file_path, file_type, file_size, created_at, updated_at) VALUES
+(1, 1, 1, 'Document 1', 'uploads/user_1/doc1.pdf', 'application/pdf', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 2, 2, 'Document 2', 'uploads/user_2/doc2.docx', 'application/docx', 2048, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 3, 3, 'Document 3', 'uploads/user_3/doc3.txt', 'text/plain', 512, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 4, 4, 'Document 4', 'uploads/user_4/doc4.xlsx', 'application/xlsx', 3072, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 5, 5, 'Document 5', 'uploads/user_5/doc5.pptx', 'application/pptx', 4096, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO DocumentShares (share_id, user_id, document_id, permission) VALUES
 (1, 2, 1, 'read'),
@@ -223,4 +230,4 @@ INSERT INTO ChildLibraries (child_id, library_id, child_library_id) VALUES
 (1, 1, 2),
 (2, 2, 3),
 (3, 3, 4),
-(4, 4, 5);
+(4, 4, 5);*/
