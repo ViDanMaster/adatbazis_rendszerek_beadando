@@ -638,7 +638,7 @@ function getCalendar($user_id) {
     global $conn;
     try {
         
-         $sql = "SELECT calendar_id, name, color FROM Calendars";
+         $sql = "SELECT calendar_id, name, color FROM Calendars WHERE user_id=$user_id";
         $result = $conn->query($sql);
         return $result;
     } catch (PDOException $e) {
