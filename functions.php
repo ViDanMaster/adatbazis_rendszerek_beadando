@@ -662,15 +662,14 @@ function updateCalendar($calendar_id, $name, $color) {
         return false;
     }
 }
-function getCalendar($user_id) {
+function getEvent($user_id) {
     global $conn;
     try {
-        
-         $sql = "SELECT calendar_id, name, color FROM Calendars WHERE user_id=$user_id";
+         $sql = "SELECT event_id, title, description, start_time, end_time, location FROM Events WHERE user_id=$user_id";
         $result = $conn->query($sql);
         return $result;
     } catch (PDOException $e) {
-        error_log("Adatbázis hiba a gyökér mappák lekérésekor: " . $e->getMessage());
+        error_log("Adatbázis hiba: " . $e->getMessage());
         return [];
     }
 }

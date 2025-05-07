@@ -6,6 +6,14 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
+if (isset($_GET['id']) && (!isset($_GET['type']) || $_GET['type'] === 'event')) {
+    $eventId = (int)$_GET['id'];
+    //$result = deleteDocument($documentId);
+    
+    $redirectUrl = 'index.php';    
+    header("Location: $redirectUrl");
+    exit;
+}
 
 if (isset($_GET['id']) && (!isset($_GET['type']) || $_GET['type'] === 'document')) {
     $documentId = (int)$_GET['id'];

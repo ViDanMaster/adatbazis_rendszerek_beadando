@@ -95,7 +95,7 @@ if (!isset($_SESSION['user_id'])) {
                 events: 'fetch_events.php',
 
                 eventClick: function (info) {
-                    window.location.href = `view_event.php?id=${info.event.id}`;
+                    window.location.href = `event.php?id=${info.event.id}`;
                 },
 
                 eventDidMount: function (info) {
@@ -116,15 +116,17 @@ if (!isset($_SESSION['user_id'])) {
                 contextMenu.classList.remove('active');
             });
 
+
+
             document.getElementById('open-item').addEventListener('click', () => {
                 if (targetEvent) {
-                    window.location.href = `view_event.php?id=${targetEvent.id}`;
+                    window.location.href = `event.php?id=${targetEvent.id}`;
                 }
             });
 
             document.getElementById('edit-item').addEventListener('click', () => {
                 if (targetEvent) {
-                    window.location.href = `edit_event.php?id=${targetEvent.id}`;
+                    window.location.href = `event_edit.php?id=${targetEvent.id}`;
                 }
             });
 
@@ -132,7 +134,7 @@ if (!isset($_SESSION['user_id'])) {
                 if (targetEvent) {
                     const confirmDelete = confirm('Biztosan törlöd ezt az eseményt?');
                     if (confirmDelete) {
-                        window.location.href = `delete_event.php?id=${targetEvent.id}`;
+                        window.location.href = `delete.php?type=${type}&id=${id}`;
                     }
                 }
             });
