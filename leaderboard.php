@@ -33,22 +33,26 @@ if (!isset($_SESSION['user_id'])) {
 
         $users = event_leaderboard();
         $doc_counts= document_leaderboard();
+        $lib_counts = library_leaderboard();
 
         if (count($users) === 0) {
             echo "<p>Nincs felhasználó vagy esemény az adatbázisban.</p>";
         } else {
             echo "<table border='1' cellpadding='10' cellspacing='0'>";
-            echo "<tr><th>Felhasználónév</th><th>Események száma</th><th>Dokumentumok</th></tr>";
+            echo "<tr><th>Felhasználónév</th><th>Események száma</th><th>Dokumentumok</th><th>Könyvtárak</th></tr>";
 
             foreach ($users as $user) {
                 $username = $user['USERNAME'];
                 $event_count = $user['EVENT_COUNT'];
                 $doc_count= isset($doc_counts[$username]) ? $doc_counts[$username] : 0;
+                $lib_count = isset($lib_counts[$username]) ? $lib_counts[$username] : 0;
+
 
                 echo "<tr>";
                 echo "<td>" . htmlspecialchars($username) . "</td>";
                 echo "<td>" . htmlspecialchars($event_count) . "</td>";
                 echo "<td>" . htmlspecialchars($doc_count) . "</td>";
+                echo "<td>" . htmlspecialchars($lib_count) . "</td>";
                 echo "</tr>";
             }
 
