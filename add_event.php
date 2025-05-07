@@ -1,4 +1,4 @@
-<p?php
+<?php
 session_start();
 include 'functions.php';
 
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($end_time)) {
         $message = "<p class='error'>Befejezés idejének megadása kötelező!</p>";
     } else {
-        addCalendar($_SESSION['user_id'], $name, $color);
+        add_eventt($_SESSION['user_id'],  $title, $description, $start_time, $end_time, $location, $is_recurring);
         $message = "<p class='message'>Esemény sikeresen létrehozva!</p>";
     }
 }
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Új esemény létrehozása - Goofle</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/stylee.css">
 </head>
 
 <body>
@@ -72,9 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="form-group">
                     <p >Esemény ismétlődik?</p>
-                        <input type="radio" id="recurrings" name="recurring_yes" value="TRUE">
+                        <input type="radio" id="recurrings" name="recurring" value="TRUE">
                         <label class="iss" for="recurrings">Igen</label><br>
-                        <input type="radio" id="recurringn" name="recurring_no" value="FALSE">
+                        <input type="radio" id="recurringn" name="recurring" value="FALSE">
                         <label class="iss" for="recurringn">Nem</label><br>
                     <!--<input type="radio" id="recurring" name="recurring" required> -->
                 </div>

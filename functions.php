@@ -601,25 +601,28 @@ function addCalendar($user_id, $name, $color) {
             ':color' => $color,
         ]);
 }
-function addevent($user_id, $calendar_id, $title, $description, $start_time, $end_time, $location, $is_recurring) {
+function add_eventt($user_id, $title, $description, $start_time, $end_time, $location, $is_recurring) {
     global $conn;
-    $stid = oci_parse($conn, 'BEGIN insert_user(:user_id, :calendar_id, :title, :description, :start_time, :end_time, :location, :is_recurring); END;');
+    $sql1 = "SELECT calendar_id,  FROM Calendars WHERE user_id=$user_id";
+    $result1 = $conn->query($sql1);
 
-    oci_bind_by_name($stid, ':username', $user_id);
-    oci_bind_by_name($stid, ':email', $calendar_id);    
-    oci_bind_by_name($stid, ':username', $title);
-    oci_bind_by_name($stid, ':email', $description);
-    oci_bind_by_name($stid, ':username', $start_time);
-    oci_bind_by_name($stid, ':email', $end_time);
-    oci_bind_by_name($stid, ':username', $location);
-    oci_bind_by_name($stid, ':email', $is_recurring);
-
+    $start_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $start_time)));
+$end_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $end_time)));
+    $sql = "BEGIN addevent(:user_id, :calendar_id, :title, :description, 
+        TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI:SS'), 
+        TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI:SS'),  :location, :is_recurring); END;";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([
+        ':user_id' => $user_id,
+        ':calendar_id' => $result1,
+        ':title' => $title,
+        ':description' => $description,
+        ':start_time' => $start_time,
+        ':end_time' => $end_time,
+        ':location' => $location,
+        ':is_recurring' => $is_recurring,
+    ]);
 }
-
-
-
-
-
 
 
 
