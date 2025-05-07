@@ -800,7 +800,7 @@ function deleteEvent($eventID){
         DELETE FROM Events WHERE event_id = :event_id
     ";
     $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':event_id', $event_id, PDO::PARAM_INT);
+    $stmt->bindParam(':event_id', $eventID, PDO::PARAM_INT);
     return $stmt->execute();
 }
 

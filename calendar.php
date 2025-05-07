@@ -134,7 +134,7 @@ if (!isset($_SESSION['user_id'])) {
                 if (targetEvent) {
                     const confirmDelete = confirm('Biztosan törlöd ezt az eseményt?');
                     if (confirmDelete) {
-                        window.location.href = `delete.php?type=${type}&id=${id}`;
+                        window.location.href = `delete.php?type=${'event'}&id=${targetEvent.id}`;
                     }
                 }
             });
