@@ -8,9 +8,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 if (isset($_GET['id']) && (!isset($_GET['type']) || $_GET['type'] === 'event')) {
     $eventId = (int)$_GET['id'];
-    //$result = deleteDocument($documentId);
+    $result = deleteEvent($eventId);
     
-    $redirectUrl = 'index.php';    
+    $redirectUrl = 'calendar.php';
     header("Location: $redirectUrl");
     exit;
 }
