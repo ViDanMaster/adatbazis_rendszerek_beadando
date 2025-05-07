@@ -534,3 +534,7 @@ button:hover {
     font-size: 1.2em !important;
     margin: 0px;
 }
+
+#leaderboard {
+    margin: 0 auto;
+}

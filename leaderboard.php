@@ -43,14 +43,14 @@ if (!isset($_SESSION['user_id'])) {
         if (count($users) === 0) {
             echo "<p>Nincs felhasználó vagy esemény az adatbázisban.</p>";
         } else {
-            echo "<table border='1' cellpadding='10' cellspacing='0'>";
+            echo "<table border='1' cellpadding='10' cellspacing='0' id='leaderboard'>";
             echo "<tr><th colspan='3'>Átlagok</th></tr>";
             echo "<tr><th>Események átlaga</th><th>Dokumentumok átlaga</th><th>Mappák átlaga</th></tr>";
             echo "<tr><th>{$avg['AVG_EVENT_COUNT']}</th><th>{$avg['AVG_DOCUMENT_COUNT']}</th><th>{$avg['AVG_LIBRARY_COUNT']}</th></tr>";
 
 
-            echo "<table border='1' cellpadding='10' cellspacing='0'>";
-            echo "<tr><th>Felhasználónév</th><th>Események száma</th><th>Dokumentumok</th><th>Könyvtárak</th></tr>";
+            echo "<table border='1' cellpadding='10' cellspacing='0' id='leaderboard'>";
+            echo "<br><tr><th>Felhasználónév</th><th>Események száma</th><th>Dokumentumok</th><th>Könyvtárak</th></tr>";
 
             foreach ($users as $user) {
                 $username = $user['USERNAME'];
