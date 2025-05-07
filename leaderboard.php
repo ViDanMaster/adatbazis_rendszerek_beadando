@@ -31,6 +31,11 @@ if (!isset($_SESSION['user_id'])) {
             die("<p style='color:#ea4335;background-color:#fce8e6;padding:12px;border-radius:4px;'>Adatbázis kapcsolati hiba!</p>");
         }
 
+        $avg= average_leaderboard();
+
+
+
+
         $users = event_leaderboard();
         $doc_counts= document_leaderboard();
         $lib_counts = library_leaderboard();
@@ -38,6 +43,12 @@ if (!isset($_SESSION['user_id'])) {
         if (count($users) === 0) {
             echo "<p>Nincs felhasználó vagy esemény az adatbázisban.</p>";
         } else {
+            echo "<table border='1' cellpadding='10' cellspacing='0'>";
+            echo "<tr><th colspan='3'>Átlagok</th></tr>";
+            echo "<tr><th>Események átlaga</th><th>Dokumentumok átlaga</th><th>Mappák átlaga</th></tr>";
+            echo "<tr><th>{$avg['AVG_EVENT_COUNT']}</th><th>{$avg['AVG_DOCUMENT_COUNT']}</th><th>{$avg['AVG_LIBRARY_COUNT']}</th></tr>";
+
+
             echo "<table border='1' cellpadding='10' cellspacing='0'>";
             echo "<tr><th>Felhasználónév</th><th>Események száma</th><th>Dokumentumok</th><th>Könyvtárak</th></tr>";
 

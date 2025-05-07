@@ -741,5 +741,33 @@ function library_leaderboard() {
 
 }
 
+function average_leaderboard() {
+    global $conn;
+
+    $sql = "
+        SELECT
+            ROUND(AVG(event_count)) AS avg_event_count,
+            ROUND(AVG(document_count)) AS avg_document_count,
+            ROUND(AVG(library_count)) AS avg_library_count
+        FROM (
+            SELECT
+                u.username,
+                COUNT(DISTINCT e.event_id) AS event_count,
+                COUNT(DISTINCT d.document_id) AS document_count,
+                COUNT(DISTINCT l.library_id) AS library_count
+            FROM Users u
+            LEFT JOIN Events e ON u.user_id = e.user_id
+            LEFT JOIN Documents d ON u.user_id = d.user_id
+            LEFT JOIN Libraries l ON u.user_id = l.user_id
+            GROUP BY u.username
+        )
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 
 ?>
