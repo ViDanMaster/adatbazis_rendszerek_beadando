@@ -793,5 +793,16 @@ function average_leaderboard() {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+function deleteEvent($eventID){
+    global $conn;
+
+    $sql = "
+        DELETE FROM Events WHERE event_id = :event_id
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':event_id', $event_id, PDO::PARAM_INT);
+    return $stmt->execute();
+}
+
 
 ?>
