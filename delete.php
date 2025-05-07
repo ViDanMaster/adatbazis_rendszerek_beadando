@@ -10,7 +10,7 @@ if (isset($_GET['id']) && (!isset($_GET['type']) || $_GET['type'] === 'event')) 
     $eventId = (int)$_GET['id'];
     $result = deleteEvent($eventId);
     
-    $redirectUrl = 'calendar.php';
+    $redirectUrl = 'index.php';
     header("Location: $redirectUrl");
     exit;
 }
