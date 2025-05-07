@@ -353,10 +353,10 @@ button:hover {
 }
 
 .form-group label {
-    display: block;
+    margin-top: 10px;
     margin-bottom: 8px;
     font-weight: 500;
-    color: #3c4043;
+    color: #3e4245;
     font-size: 14px;
 }
 

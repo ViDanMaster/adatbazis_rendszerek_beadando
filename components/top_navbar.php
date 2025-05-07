@@ -2,9 +2,6 @@
   <div class="logo">
     <a href="index.php" class="logo-link"><h2>Goofle</h2></a>
   </div>
-  <div class="top-nav-links">
-    <a href="groups.php">Csoportok</a>
-  </div>
   <div class="user-actions">
     <?php
     if (isset($_SESSION['user_id'])) {
