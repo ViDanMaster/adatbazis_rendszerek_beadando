@@ -58,6 +58,9 @@ if (!isset($_SESSION['user_id'])) {
                 $doc_count= isset($doc_counts[$username]) ? $doc_counts[$username] : 0;
                 $lib_count = isset($lib_counts[$username]) ? $lib_counts[$username] : 0;
 
+                if ($event_count == 0 && $doc_count == 0 && $lib_count == 0) {
+                    continue;
+                }
 
                 echo "<tr>";
                 echo "<td>" . htmlspecialchars($username) . "</td>";
