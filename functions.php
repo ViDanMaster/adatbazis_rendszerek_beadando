@@ -716,6 +716,29 @@ function document_leaderboard() {
     return $doc_counts;
 }
 
+function library_leaderboard() {
+    global $conn;
+
+    $sql= "
+        SELECT u.username, COUNT(l.library_id) AS library_count
+        FROM Users u
+        LEFT JOIN Libraries l ON u.user_id = l.user_id
+        GROUP BY u.username
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $lib_counts = [];
+
+    foreach ($results as $row){
+        $lib_counts[$row['USERNAME']] = $row['LIBRARY_COUNT'];
+    }
+
+    return $lib_counts;
+
+}
 
 
 ?>
