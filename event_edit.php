@@ -7,6 +7,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+$eventID = (int)$_GET['id'];
+$event = getEvent($eventID);
+
+if (!$event) {
+    header('Location: index.php');
+    exit;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="hu">

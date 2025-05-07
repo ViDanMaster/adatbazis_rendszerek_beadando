@@ -601,6 +601,30 @@ function addCalendar($user_id, $name, $color) {
             ':color' => $color,
         ]);
 }
+function updateEvent($event_id, $title, $description, $start_time, $end_time, $location) {
+    global $conn;
+    
+    try {
+        $sql = "UPDATE Events SET title = :title, description = :description, start_time = :start_time, end_time = :end_time, location = :location  ";
+        $params = [
+            ':title' => $title,
+            ':event_id' => $event_id,
+            ':description' => $description,
+            ':start_time' => $start_time,
+            ':end_time' => $end_time, 
+            ':location' => $location
+        ];
+        
+        $sql .= " WHERE event_id = :event_id";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Adatbázis hiba a naptár frissítésekor: " . $e->getMessage());
+        return false;
+    }
+}
 function add_eventt($user_id, $title, $description, $start_time, $end_time, $location) {
     global $conn;
     $stmt1 = $conn->prepare("SELECT calendar_id FROM Calendars WHERE user_id = :user_id");
