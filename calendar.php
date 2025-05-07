@@ -17,7 +17,7 @@ if (!isset($_SESSION['user_id'])) {
     <title>Naptáraim - Goofle</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js"></script>
-    
+
     <style>
         .fc .fc-toolbar.fc-header-toolbar {
             background-color: #6EC1F4;
@@ -65,33 +65,83 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="main-content">
         <h1>Naptáraim</h1>
-            <div class="drive-container">
-                <?php
-                include 'functions.php';
-                if (!isset($conn) || $conn === null) {
-                    die("<p style='color:#ea4335;background-color:#fce8e6;padding:12px;border-radius:4px;'>Adatbázis kapcsolati hiba!</p>");
-                }
-               ?>
-                <div class="calendar"></div>
-                <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const calendarEl = document.querySelector('.calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'hu',
-        firstDay: 1,
-        events: 'fetch_events.php', // Itt történik a lekérés
-        eventClick: function(info) {
-            alert('Esemény címe: ' + info.event.title);
-        }
-    });
-    calendar.render();
-});
-</script>
-            </div>
+        <div class="drive-container">
+            <?php
+            include 'functions.php';
+            if (!isset($conn) || $conn === null) {
+                die("<p style='color:#ea4335;background-color:#fce8e6;padding:12px;border-radius:4px;'>Adatbázis kapcsolati hiba!</p>");
+            }
+            ?>
+            <div class="calendar"></div>
+
         </div>
+    </div>
+    <div id="context-menu" class="context-menu">
+        <ul>
+            <li id="open-item"><i class="menu-icon">📂</i>Megnyitás</li>
+            <li id="edit-item"><i class="menu-icon">✏️</i>Szerkesztés</li>
+            <li id="delete-item"><i class="menu-icon">🗑️</i>Törlés</li>
+        </ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.querySelector('.calendar');
+            const contextMenu = document.getElementById('context-menu');
+            let targetEvent = null;
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'hu',
+                firstDay: 1,
+                events: 'fetch_events.php',
+
+                eventClick: function (info) {
+                    window.location.href = `view_event.php?id=${info.event.id}`;
+                },
+
+                eventDidMount: function (info) {
+                    info.el.addEventListener('contextmenu', function (e) {
+                        e.preventDefault();
+                        targetEvent = info.event;
+                        contextMenu.style.left = `${e.pageX}px`;
+                        contextMenu.style.top = `${e.pageY}px`;
+                        contextMenu.classList.add('active');
+
+                    });
+                }
+            });
+
+            calendar.render();
+
+            document.addEventListener('click', () => {
+                contextMenu.classList.remove('active');
+            });
+
+            document.getElementById('open-item').addEventListener('click', () => {
+                if (targetEvent) {
+                    window.location.href = `view_event.php?id=${targetEvent.id}`;
+                }
+            });
+
+            document.getElementById('edit-item').addEventListener('click', () => {
+                if (targetEvent) {
+                    window.location.href = `edit_event.php?id=${targetEvent.id}`;
+                }
+            });
+
+            document.getElementById('delete-item').addEventListener('click', () => {
+                if (targetEvent) {
+                    const confirmDelete = confirm('Biztosan törlöd ezt az eseményt?');
+                    if (confirmDelete) {
+                        window.location.href = `delete_event.php?id=${targetEvent.id}`;
+                    }
+                }
+            });
+
+        });
+    </script>
 
 
-        </body>
+    </body>
 
 </html>
