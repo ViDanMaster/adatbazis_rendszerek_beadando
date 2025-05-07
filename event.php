@@ -1,9 +1,21 @@
 <?php
 session_start();
 
+include 'functions.php';
+if (!isset($conn) || $conn === null) {
+    die("<p style='color:#ea4335;background-color:#fce8e6;padding:12px;border-radius:4px;'>Adatbázis kapcsolati hiba!</p>");
+}
 if (!isset($_SESSION['user_id'])) {
   header('Location: login.php');
   exit;
+}
+
+$eventID = (int)$_GET['id'];
+$event = getEvent($eventID);
+
+if (!$event) {
+    header('Location: index.php');
+    exit;
 }
 
 ?>
@@ -23,30 +35,18 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="main-content">
     <?php
-      include 'functions.php';
-      if (!isset($conn) || $conn === null) {
-          die("<p style='color:#ea4335;background-color:#fce8e6;padding:12px;border-radius:4px;'>Adatbázis kapcsolati hiba!</p>");
-      }
+        if (is_resource($event['DESCRIPTION'])) {
+            $event['DESCRIPTION'] = stream_get_contents($event['DESCRIPTION']);
+        }
+      echo "<div class='item-name'><h1>" . htmlspecialchars($event['TITLE']) . "</h1></div>";
+      echo "<div class='item-name'><p> Leírása: " . htmlspecialchars($event['DESCRIPTION']) . "</p></div>";
+      echo "<div class='item-name'><p>Helyszín: " . htmlspecialchars($event['LOCATION']) . "</p></div>";
+       echo "<div class='item-name'><p>Kezdete: " . htmlspecialchars((string)$event['START_TIME']) . "</p></div>";
+      echo "<div class='item-name'><p>Vége: " . htmlspecialchars((string)$event['END_TIME']) . "</p></div>";
 
-      try {
-          $esemenyek = getEvent($_SESSION['user_id']);
-          
-          $hasContent = false;
-          
-          if (!empty($esemenyek)) {
-              $hasContent = true;
-              echo "<div class='section-header'>Mappák</div>";
-              echo "<div class='files-grid'>";
-              foreach ($esemenyek as $lib) {
-                  echo "<div class='item folder-item' data-id='{$lib['LIBRARY_ID']}'>";
-                  echo "<div class='item-icon'>📁</div>";
-                  echo "<div class='item-details'>";
-                  echo "<div class='item-name'>" . htmlspecialchars($lib['NAME']) . "</div>";
-                  echo "</div>";
-                  echo "</div>";
-              }
-              echo "</div>";
-          }}
+
+      
+
           ?>
     </div>
 </body>

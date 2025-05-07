@@ -662,17 +662,19 @@ function updateCalendar($calendar_id, $name, $color) {
         return false;
     }
 }
-function getEvent($user_id) {
+function getEvent($eventID) {
     global $conn;
     try {
-         $sql = "SELECT event_id, title, description, start_time, end_time, location FROM Events WHERE user_id=$user_id";
-        $result = $conn->query($sql);
-        return $result;
+        $stmt = $conn->prepare("SELECT * FROM Events WHERE event_id = :id");
+        $stmt->execute([':id' => $eventID]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        error_log("Adatbázis hiba: " . $e->getMessage());
-        return [];
+        error_log("Adatbázis hiba a dokumentum lekérésekor: " . $e->getMessage());
+        return false;
     }
 }
+
+
 
 
 function event_leaderboard() {
