@@ -14,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $start_time = $_POST['start'] ?? '';
     $end_time = $_POST['end'] ?? '';
     $location = $_POST['location'] ?? '';
-    $is_recurring = $_POST['recurring'] ?? '';
 
     if (empty($title)) {
         $message = "<p class='error'>Név megadása kötelező!</p>";
@@ -23,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($end_time)) {
         $message = "<p class='error'>Befejezés idejének megadása kötelező!</p>";
     } else {
-        add_eventt($_SESSION['user_id'],  $title, $description, $start_time, $end_time, $location, $is_recurring);
+        add_eventt($_SESSION['user_id'],  $title, $description, $start_time, $end_time, $location);
         $message = "<p class='message'>Esemény sikeresen létrehozva!</p>";
     }
 }
@@ -35,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Új esemény létrehozása - Goofle</title>
-    <link rel="stylesheet" href="css/stylee.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
@@ -69,14 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="end">Vége:</label>
                     <input type="datetime-local" id="end" name="end" required>
-                </div>
-                <div class="form-group">
-                    <p >Esemény ismétlődik?</p>
-                        <input type="radio" id="recurrings" name="recurring" value="TRUE">
-                        <label class="iss" for="recurrings">Igen</label><br>
-                        <input type="radio" id="recurringn" name="recurring" value="FALSE">
-                        <label class="iss" for="recurringn">Nem</label><br>
-                    <!--<input type="radio" id="recurring" name="recurring" required> -->
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Létrehozás</button>

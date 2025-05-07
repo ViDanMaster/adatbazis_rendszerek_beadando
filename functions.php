@@ -601,28 +601,34 @@ function addCalendar($user_id, $name, $color) {
             ':color' => $color,
         ]);
 }
-function add_eventt($user_id, $title, $description, $start_time, $end_time, $location, $is_recurring) {
+function add_eventt($user_id, $title, $description, $start_time, $end_time, $location) {
     global $conn;
-    $sql1 = "SELECT calendar_id,  FROM Calendars WHERE user_id=$user_id";
-    $result1 = $conn->query($sql1);
+    $stmt1 = $conn->prepare("SELECT calendar_id FROM Calendars WHERE user_id = :user_id");
+    $stmt1->execute([':user_id' => $user_id]);
+    $result1 = $stmt1->fetch(PDO::FETCH_ASSOC);
+    if (!$result1) {
+        die("Hiba: A megadott user_id-hez nem található calendar.");
+    }
+    $calendar_id = $result1['CALENDAR_ID'];
 
     $start_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $start_time)));
 $end_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $end_time)));
     $sql = "BEGIN addevent(:user_id, :calendar_id, :title, :description, 
         TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI:SS'), 
-        TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI:SS'),  :location, :is_recurring); END;";
+        TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI:SS'),  :location); END;";
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         ':user_id' => $user_id,
-        ':calendar_id' => $result1,
+        ':calendar_id' => $calendar_id,
         ':title' => $title,
         ':description' => $description,
-        ':start_time' => $start_time,
+        ':start_time' => $start_time,  
         ':end_time' => $end_time,
-        ':location' => $location,
-        ':is_recurring' => $is_recurring,
+        ':location' => $location
     ]);
 }
+
+
 
 
 

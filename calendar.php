@@ -15,8 +15,9 @@ if (!isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Naptáraim - Goofle</title>
-    <link rel="stylesheet" href="css/stylee.css">
+    <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js"></script>
+    
     <style>
         .fc .fc-toolbar.fc-header-toolbar {
             background-color: #6EC1F4;
@@ -73,17 +74,20 @@ if (!isset($_SESSION['user_id'])) {
                ?>
                 <div class="calendar"></div>
                 <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        const calendarEl = document.querySelector('.calendar');
-                        const calendar = new FullCalendar.Calendar(calendarEl, {
-                            initialView: 'dayGridMonth',
-                            locale: 'hu',
-                            firstDay: 1,
-                            events: []
-                        });
-                        calendar.render();
-                    });
-                </script>
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.querySelector('.calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'hu',
+        firstDay: 1,
+        events: 'fetch_events.php', // Itt történik a lekérés
+        eventClick: function(info) {
+            alert('Esemény címe: ' + info.event.title);
+        }
+    });
+    calendar.render();
+});
+</script>
             </div>
         </div>
 
