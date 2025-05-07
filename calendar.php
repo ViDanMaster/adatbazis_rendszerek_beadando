@@ -58,7 +58,6 @@ if (!isset($_SESSION['user_id'])) {
     </style>
 </head>
 
-<div>
 
     <?php include 'components/top_navbar.php'; ?>
     <?php include 'components/sidebar_navbar.php'; ?>

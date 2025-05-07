@@ -612,7 +612,7 @@ function add_eventt($user_id, $title, $description, $start_time, $end_time, $loc
     $calendar_id = $result1['CALENDAR_ID'];
 
     $start_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $start_time)));
-$end_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $end_time)));
+    $end_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $end_time)));
     $sql = "BEGIN addevent(:user_id, :calendar_id, :title, :description, 
         TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI:SS'), 
         TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI:SS'),  :location); END;";
@@ -622,13 +622,11 @@ $end_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $end_time)));
         ':calendar_id' => $calendar_id,
         ':title' => $title,
         ':description' => $description,
-        ':start_time' => $start_time,  
+        ':start_time' => $start_time,
         ':end_time' => $end_time,
         ':location' => $location
     ]);
 }
-
-
 
 
 
@@ -676,6 +674,48 @@ function getCalendar($user_id) {
         return [];
     }
 }
+
+
+function event_leaderboard() {
+    global $conn;
+
+    $sql = "
+        SELECT u.username, COUNT(e.event_id) AS event_count
+        FROM Users u
+        LEFT JOIN Events e ON u.user_id = e.user_id
+        GROUP BY u.username
+        ORDER BY event_count DESC
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function document_leaderboard() {
+    global $conn;
+
+    $sql = "
+        SELECT u.username, COUNT(d.document_id) AS document_count
+        FROM Users u
+        LEFT JOIN Documents d ON u.user_id = d.user_id
+        GROUP BY u.username
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $doc_counts = [];
+    foreach ($results as $row) {
+        $doc_counts[$row['USERNAME']] = $row['DOCUMENT_COUNT'];
+    }
+
+    return $doc_counts;
+}
+
 
 
 ?>

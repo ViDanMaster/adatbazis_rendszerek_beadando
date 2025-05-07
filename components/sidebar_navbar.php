@@ -7,5 +7,6 @@
     <li><a href="shared_with_me.php" <?php echo basename($_SERVER['PHP_SELF']) == 'shared_with_me.php' ? 'class="active"' : ''; ?>>Megosztva velem</a></li>
     <li><a href="calendar.php" <?php echo basename($_SERVER['PHP_SELF']) == 'calendar.php' ? 'class="active"' : ''; ?>>Naptáram</a></li>
     <li><a href="add_event.php" <?php echo basename($_SERVER['PHP_SELF']) == 'add_event.php' ? 'class="active"' : ''; ?>>Új esemény</a></li>
+    <li><a href="leaderboard.php"<?php echo basename($_SERVER['PHP_SELF']) == 'add_event.php' ? 'class="active"' : ''; ?>>Ranglétra</a></li>
   </ul>
 </nav>
