@@ -155,11 +155,21 @@ $subLibraries = getSubLibraries($libraryId);
       contextMenu.style.top = `${e.pageY}px`;
       
       const shareOption = document.getElementById('share-item');
+      const editOption = document.getElementById('edit-item');
+      const deleteOption = document.getElementById('delete-item');
+      
+      // Hide share option for documents
       if (item.classList.contains('document-item')) {
         shareOption.style.display = 'none';
       } else {
         shareOption.style.display = 'flex';
       }
+      
+      // Hide edit and delete options if user doesn't have edit permissions
+      <?php if (!$canEdit): ?>
+        editOption.style.display = 'none';
+        deleteOption.style.display = 'none';
+      <?php endif; ?>
       
       contextMenu.classList.add('active');
     }
@@ -201,17 +211,21 @@ $subLibraries = getSubLibraries($libraryId);
 
     document.getElementById('delete-item').addEventListener('click', () => {
       if (targetItem) {
-        if (targetItem.classList.contains('folder-item')) {
-          const folderId = targetItem.getAttribute('data-id');
-          if (confirm('Biztosan törölni szeretnéd ezt a mappát és annak tartalmát?')) {
-            window.location.href = `delete.php?type=library&id=${folderId}&return=<?php echo $libraryId; ?>`;
+        <?php if ($canEdit): // Only allow deletion if user has edit permission ?>
+          if (targetItem.classList.contains('folder-item')) {
+            const folderId = targetItem.getAttribute('data-id');
+            if (confirm('Biztosan törölni szeretnéd ezt a mappát és annak tartalmát?')) {
+              window.location.href = `delete.php?type=library&id=${folderId}&return=<?php echo $libraryId; ?>`;
+            }
+          } else {
+            const docId = targetItem.getAttribute('data-id');
+            if (confirm('Biztosan törölni szeretnéd ezt a dokumentumot?')) {
+              window.location.href = `delete.php?type=document&id=${docId}&library_id=<?php echo $libraryId; ?>`;
+            }
           }
-        } else {
-          const docId = targetItem.getAttribute('data-id');
-          if (confirm('Biztosan törölni szeretnéd ezt a dokumentumot?')) {
-            window.location.href = `delete.php?id=${docId}&library_id=<?php echo $libraryId; ?>`;
-          }
-        }
+        <?php else: ?>
+          alert('Nincs jogosultságod a törléshez!');
+        <?php endif; ?>
       }
     });
   </script>

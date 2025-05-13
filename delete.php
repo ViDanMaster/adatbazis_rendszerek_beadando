@@ -6,6 +6,33 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
+
+// Check user permissions for the item being deleted
+if (isset($_GET['type']) && $_GET['type'] == 'library' && isset($_GET['id'])) {
+    $libraryId = (int)$_GET['id'];
+    $userPermission = getUserLibraryPermission($_SESSION['user_id'], $libraryId);
+    
+    if ($userPermission !== 'owner' && $userPermission !== 'edit') {
+        $_SESSION['error'] = "Nincs jogosultságod a törléshez!";
+        header('Location: index.php');
+        exit;
+    }
+} else if (isset($_GET['type']) && $_GET['type'] == 'document' && isset($_GET['id'])) {
+    $docId = (int)$_GET['id'];
+    $document = getDocumentById($docId);
+    
+    if ($document && $document['LIBRARY_ID']) {
+        $userPermission = getUserLibraryPermission($_SESSION['user_id'], $document['LIBRARY_ID']);
+        
+        if ($document['USER_ID'] != $_SESSION['user_id'] && 
+            ($userPermission !== 'owner' && $userPermission !== 'edit')) {
+            $_SESSION['error'] = "Nincs jogosultságod a törléshez!";
+            header('Location: index.php');
+            exit;
+        }
+    }
+}
+
 if (isset($_GET['id']) && (!isset($_GET['type']) || $_GET['type'] === 'event')) {
     $eventId = (int)$_GET['id'];
     $result = deleteEvent($eventId);

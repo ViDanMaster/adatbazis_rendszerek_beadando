@@ -44,8 +44,6 @@ if (isset($_POST['update_password'])) {
         $error = "Minden jelszó mező kitöltése kötelező!";
     } elseif ($newPassword !== $confirmPassword) {
         $error = "Az új jelszavak nem egyeznek!";
-    } elseif (strlen($newPassword) < 6) {
-        $error = "Az új jelszónak legalább 6 karakter hosszúnak kell lennie!";
     } else {
         if (password_verify($currentPassword, $userData['PASSWORD'])) {
             $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
