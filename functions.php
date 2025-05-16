@@ -842,5 +842,108 @@ function deleteEvent($eventID){
 }
 
 
+function library_shares(){
+    global $conn;
 
+    $sql= "
+        SELECT 
+            u.username,
+            COUNT(ls.share_id) AS shared_libraries
+        FROM
+            Users u
+        JOIN Libraries l ON u.user_id = l.user_id
+        JOIN LibraryShares ls ON l.library_id = ls. library_id
+        GROUP BY 
+            u.username
+    ";
+
+    $stmt=$conn->prepare($sql);
+    $stmt->execute();
+
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $ls_counts=[];
+
+    foreach ($results as $row){
+        $ls_counts[$row['USERNAME']] = $row['SHARED_LIBRARIES'];
+    }
+
+    return $ls_counts;
+}
+
+function document_shares()
+{
+    global $conn;
+
+    $sql = "
+        SELECT
+            u.username
+            COUNT(ds.share_id) AS shared_documents
+        FROM Users u
+        JOIN Documents d ON u.user_id = d.user_id
+        JOIN DocumentShares ds ON d.document_id = ds.document_id
+        GROUP BY
+            u.username
+    ";
+
+    $stmt=$conn->prepare($sql);
+    $stmt->execute();
+
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $ds_counts=[];
+
+    foreach ($results as $row){
+        $ds_counts[$row['USERNAME']] = $row['SHARED_DOCUMENTS'];
+    }
+
+    return $ds_counts;
+}
+
+function avg_docShares(){
+    global $conn;
+
+    $sql = "
+        SELECT ROUND(AVG(shared_count)) AS avg_shared_documents
+        FROM (
+            SELECT COUNT(ds.share_id) AS shared_count
+            FROM Users u
+            JOIN Documents d ON u.user_id = d.user_id
+            JOIN DocumentShares ds ON d.document_id = ds.document_id
+            GROUP BY u.user_id
+        )
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $result['AVG_SHARED_DOCUMENTS'];
+
+}
+
+function avg_libShares()
+{
+    global $conn;
+
+    $sql = "
+        SELECT ROUND(AVG(shared_count)) AS avg_shared_libraries
+        FROM (
+            SELECT COUNT(ls.share_id) AS shared_count
+            FROM Users u
+            JOIN Libraries l ON u.user_id = l.user_id
+            JOIN LibraryShares ls ON d.document_id = ls.document_id
+            GROUP BY u.user_id
+        )
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $result['AVG_SHARED_LIBRARIES'];
+
+}
 ?>
