@@ -627,6 +627,7 @@ function updateEvent($event_id, $title, $description, $start_time, $end_time, $l
 }
 function add_eventt($user_id, $title, $description, $start_time, $end_time, $location) {
     global $conn;
+    try{
     $stmt1 = $conn->prepare("SELECT calendar_id FROM Calendars WHERE user_id = :user_id");
     $stmt1->execute([':user_id' => $user_id]);
     $result1 = $stmt1->fetch(PDO::FETCH_ASSOC);
@@ -649,7 +650,16 @@ function add_eventt($user_id, $title, $description, $start_time, $end_time, $loc
         ':start_time' => $start_time,
         ':end_time' => $end_time,
         ':location' => $location
-    ]);
+    ]);} catch (PDOException $e) {
+        $msg = $e->getMessage();
+
+    if (strpos($msg, 'A végdátum nem lehet korábban, mint a kezdődátum.') !== false) {
+        $error = 'A végdátum nem lehet korábban, mint a kezdődátum.';
+    } else {
+        $error = "Ismeretlen adatbázishiba.";
+    }
+    header("Location: add_event.php?error=" . urlencode($error));
+    exit;}
 }
 
 
@@ -803,6 +813,7 @@ function deleteEvent($eventID){
     $stmt->bindParam(':event_id', $eventID, PDO::PARAM_INT);
     return $stmt->execute();
 }
+
 
 
 ?>

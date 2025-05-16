@@ -16,14 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $location = $_POST['location'] ?? '';
 
     if (empty($title)) {
-        $message = "<p class='error'>Név megadása kötelező!</p>";
+        $message = "<div class='error-message'>Név megadása kötelező!</div>";
     } elseif (empty($start_time)) {
-        $message = "<p class='error'>Kezdés idejének megadása kötelező!</p>";
+        $message = "<div class='error-message'>Kezdés idejének megadása kötelező!</div>";
     } elseif (empty($end_time)) {
-        $message = "<p class='error'>Befejezés idejének megadása kötelező!</p>";
-    } else {
+        $message = "<div class='error-message'>Befejezés idejének megadása kötelező!</div>";
+    } elseif (isset($_GET['error'])){
+        $message = "<div class='error-message'>A végdátum nem lehet korábban, mint a kezdődátum.</div>";
+    }else{
         add_eventt($_SESSION['user_id'],  $title, $description, $start_time, $end_time, $location);
-        $message = "<p class='message'>Esemény sikeresen létrehozva!</p>";
+        $message = "<div class='success-message'>Esemény sikeresen létrehozva!</div>";
     }
 }
 ?>

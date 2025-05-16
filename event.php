@@ -38,15 +38,23 @@ if (!$event) {
         if (is_resource($event['DESCRIPTION'])) {
             $event['DESCRIPTION'] = stream_get_contents($event['DESCRIPTION']);
         }
-      echo "<div class='item-name'><h1>" . htmlspecialchars($event['TITLE']) . "</h1></div>";
-      echo "<div class='item-name'><p> Leírása: " . htmlspecialchars($event['DESCRIPTION']) . "</p></div>";
-      echo "<div class='item-name'><p>Helyszín: " . htmlspecialchars($event['LOCATION']) . "</p></div>";
-       echo "<div class='item-name'><p>Kezdete: " . htmlspecialchars((string)$event['START_TIME']) . "</p></div>";
-      echo "<div class='item-name'><p>Vége: " . htmlspecialchars((string)$event['END_TIME']) . "</p></div>";
-
-
-      
-
+        echo "<div class='item-name'><h1>" . htmlspecialchars($event['TITLE']) . "</h1></div>";
+        echo "<div class='item-name'><p> Leírása: " . htmlspecialchars($event['DESCRIPTION']) . "</p></div>";
+        echo "<div class='item-name'><p>Helyszín: " . htmlspecialchars($event['LOCATION']) . "</p></div>";
+        echo "<div class='item-name'><p>Kezdete: </p></div>";
+             $date = DateTime::createFromFormat('d-M-y h.i A', $event['START_TIME']);
+            if ($date) {
+                echo $date->format('Y-m-d H:i');  
+            } else {
+                echo "Hibás formátum";
+            }
+        echo "<div class='item-name'><p>Vége: </p></div>";
+            $date = DateTime::createFromFormat('d-M-y h.i A', $event['END_TIME']);
+            if ($date) {
+                echo $date->format('Y-m-d H:i');  
+            } else {
+                echo "Hibás formátum";
+            }
           ?>
     </div>
 </body>

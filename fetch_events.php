@@ -10,7 +10,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 try {
-    // Itt formázzuk az időpontokat ISO 8601 formátumra (YYYY-MM-DD"T"HH24:MI:SS)
     $stmt = $conn->prepare("
         SELECT 
             EVENT_ID,
