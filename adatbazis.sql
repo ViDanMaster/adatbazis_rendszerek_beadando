@@ -62,22 +62,6 @@ CREATE TABLE LibraryShares (
     FOREIGN KEY (library_id) REFERENCES Libraries(library_id) ON DELETE CASCADE
 );
 
-CREATE TABLE UserGroups (
-    group_id NUMBER PRIMARY KEY,
-    group_name VARCHAR2(100) NOT NULL,
-    user_id NUMBER NOT NULL,
-    description CLOB,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
-);
-
-CREATE TABLE UserGroupMembers (
-    member_id NUMBER PRIMARY KEY,
-    user_id NUMBER NOT NULL,
-    group_id NUMBER NOT NULL,
-    role VARCHAR2(50) DEFAULT 'member',
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES UserGroups(group_id) ON DELETE CASCADE
-);
 
 CREATE TABLE Calendars (
     calendar_id NUMBER PRIMARY KEY,
@@ -101,22 +85,6 @@ CREATE TABLE Events (
     FOREIGN KEY (calendar_id) REFERENCES Calendars(calendar_id) ON DELETE CASCADE
 );
 
-CREATE TABLE CalendarShares (
-    share_id NUMBER PRIMARY KEY,
-    calendar_id NUMBER NOT NULL,
-    user_id NUMBER NOT NULL,
-    permission VARCHAR2(20) DEFAULT 'read',
-    FOREIGN KEY (calendar_id) REFERENCES Calendars(calendar_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
-);
-
-CREATE TABLE EventDocuments (
-    link_id NUMBER PRIMARY KEY,
-    document_id NUMBER NOT NULL,
-    event_id NUMBER NOT NULL,
-    FOREIGN KEY (document_id) REFERENCES Documents(document_id) ON DELETE CASCADE,
-    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
-);
 
 CREATE SEQUENCE LIBRARY_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE DOCUMENT_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
@@ -127,10 +95,6 @@ CREATE SEQUENCE USER_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE DOCSHARE_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE EVENT_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE CALENDAR_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
-CREATE SEQUENCE CALSHARE_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
-CREATE SEQUENCE USERGROUP_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
-CREATE SEQUENCE GROUPMEMBER_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
-CREATE SEQUENCE EVENTDOC_SEQ START WITH 6 INCREMENT BY 1 NOCACHE NOCYCLE;
 
 /*INSERT INTO Users (user_id, username, email, password, profile_picture) VALUES
 (1, 'user1', 'user1@example.com', 'hashedpassword1', 'pic1.jpg'),
@@ -167,19 +131,6 @@ INSERT INTO LibraryShares (share_id, user_id, library_id, permission) VALUES
 (4, 5, 4, 'edit'),
 (5, 1, 5, 'read');
 
-INSERT INTO UserGroups (group_id, group_name, user_id, description) VALUES
-(1, 'Group 1', 1, 'Description 1'),
-(2, 'Group 2', 2, 'Description 2'),
-(3, 'Group 3', 3, 'Description 3'),
-(4, 'Group 4', 4, 'Description 4'),
-(5, 'Group 5', 5, 'Description 5');
-
-INSERT INTO UserGroupMembers (member_id, user_id, group_id, role) VALUES
-(1, 2, 1, 'member'),
-(2, 3, 2, 'admin'),
-(3, 4, 3, 'member'),
-(4, 5, 4, 'admin'),
-(5, 1, 5, 'member');
 
 INSERT INTO Calendars (calendar_id, user_id, name, color) VALUES
 (1, 1, 'Calendar 1', '#ff0000'),
@@ -195,19 +146,6 @@ INSERT INTO Events (event_id, user_id, calendar_id, title, description, start_ti
 (4, 4, 4, 'Event 4', 'Description 4', TIMESTAMP '2024-06-04 13:00:00', TIMESTAMP '2024-06-04 15:00:00', 'Location 4', 'TRUE'),
 (5, 5, 5, 'Event 5', 'Description 5', TIMESTAMP '2024-06-05 14:00:00', TIMESTAMP '2024-06-05 16:00:00', 'Location 5', 'FALSE');
 
-INSERT INTO CalendarShares (share_id, calendar_id, user_id, permission) VALUES
-(1, 1, 2, 'read'),
-(2, 2, 3, 'edit'),
-(3, 3, 4, 'read'),
-(4, 4, 5, 'edit'),
-(5, 5, 1, 'read');
-
-INSERT INTO EventDocuments (link_id, document_id, event_id) VALUES
-(1, 1, 1),
-(2, 2, 2),
-(3, 3, 3),
-(4, 4, 4),
-(5, 5, 5);
 
 INSERT INTO ParentLibraries (parent_id, library_id, parent_library_id) VALUES
 (1, 1, NULL),
