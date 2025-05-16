@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($end_time)) {
         $message = "<div class='error-message'>Befejezés idejének megadása kötelező!</div>";
     } elseif (isset($_GET['error'])){
-        $message = "<div class='error-message'>A végdátum nem lehet korábban, mint a kezdődátum.</div>";
+        $message = "<div class='error-message'>A végdátum nem lehet korábban, mint a kezdődátum!</div>";
     }else{
         add_eventt($_SESSION['user_id'],  $title, $description, $start_time, $end_time, $location);
         $message = "<div class='success-message'>Esemény sikeresen létrehozva!</div>";
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="main-content">
         <h1>Új esemény létrehozása</h1>
         <?php if (!empty($message)): ?>
-            <div class="error-message"><?php echo $message; ?></div>
+            <div ><?php echo $message; ?></div>
         <?php endif; ?>
 
         <div class="form-container">
@@ -73,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Létrehozás</button>
+                    <a href="<?php echo 'calendar.php'; ?>" class="btn-secondary">Mégse</a>
                 </div>
             </form>
         </div>

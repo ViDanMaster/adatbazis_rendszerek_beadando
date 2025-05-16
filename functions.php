@@ -654,7 +654,7 @@ function add_eventt($user_id, $title, $description, $start_time, $end_time, $loc
         $msg = $e->getMessage();
 
     if (strpos($msg, 'A végdátum nem lehet korábban, mint a kezdődátum.') !== false) {
-        $error = 'A végdátum nem lehet korábban, mint a kezdődátum.';
+        $error = 'A végdátum nem lehet korábban, mint a kezdődátum!';
     } else {
         $error = "Ismeretlen adatbázishiba.";
     }
@@ -662,6 +662,33 @@ function add_eventt($user_id, $title, $description, $start_time, $end_time, $loc
     exit;}
 }
 
+function edit_eventt($eventID, $title, $description, $start_time, $end_time, $location) {
+    global $conn;
+    try{
+    $start_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $start_time)));
+    $end_time = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $end_time)));
+    $sql = "BEGIN editevent(:event_id, :title, :description, 
+        TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI:SS'), 
+        TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI:SS'),  :location); END;";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([
+        ':event_id' => $eventID,
+        ':title' => $title,
+        ':description' => $description,
+        ':start_time' => $start_time,
+        ':end_time' => $end_time,
+        ':location' => $location
+    ]);} catch (PDOException $e) {
+        $msg = $e->getMessage();
+
+    if (strpos($msg, 'A végdátum nem lehet korábban, mint a kezdődátum.') !== false) {
+        $error = 'A végdátum nem lehet korábban, mint a kezdődátum!';
+    } else {
+        $error = "Ismeretlen adatbázishiba.";
+    }
+    header("Location: event_edit.php?error=" . urlencode($error));
+    exit;}
+}
 
 
 function deleteCalendar($calendar_id) {

@@ -32,13 +32,19 @@ if (!$event) {
 <body>
     <?php include 'components/top_navbar.php'; ?>
     <?php include 'components/sidebar_navbar.php'; ?>
+    
 
     <div class="main-content">
+        
     <?php
         if (is_resource($event['DESCRIPTION'])) {
             $event['DESCRIPTION'] = stream_get_contents($event['DESCRIPTION']);
-        }
-        echo "<div class='item-name'><h1>" . htmlspecialchars($event['TITLE']) . "</h1></div>";
+        }?>
+        <div class="alma"><?php
+        echo "<div class='item-name'><h1>" . htmlspecialchars($event['TITLE']) . "</h1></div>";?>
+        <a href="event_edit.php?id=<?php echo $eventID; ?>" class="btn-secondary">Szerkesztés</a>
+        </div>
+        <div class="document-content"><?php
         echo "<div class='item-name'><p> Leírása: " . htmlspecialchars($event['DESCRIPTION']) . "</p></div>";
         echo "<div class='item-name'><p>Helyszín: " . htmlspecialchars($event['LOCATION']) . "</p></div>";
         echo "<div class='item-name'><p>Kezdete: </p></div>";
@@ -56,6 +62,7 @@ if (!$event) {
                 echo "Hibás formátum";
             }
           ?>
+          </div>
     </div>
 </body>
 

@@ -538,3 +538,10 @@ button:hover {
 #leaderboard {
     margin: 0 auto;
 }
+
+.alma{
+    justify-content: center;
+    display: flex;
+    flex-direction: row;
+    padding: 20px;
+}
