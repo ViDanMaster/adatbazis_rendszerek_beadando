@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $sharedLibraries = getSharedLibraries($_SESSION['user_id']);
+$sharedDocuments = getSharedDocuments($_SESSION['user_id']);
 ?>
 <!DOCTYPE html>
 <html lang="hu">
@@ -45,6 +46,25 @@ $sharedLibraries = getSharedLibraries($_SESSION['user_id']);
         }
         echo "</div>";
       }
+
+      if (empty($sharedDocuments)) {
+        echo "<div class='empty-state'><p>Még nincsenek veled megosztott mappák.</p></div>";
+      } else {
+        echo "<div class='files-grid'>";
+        foreach ($sharedDocuments as $doc) {
+          echo "<div class='item document-item' data-id='{$doc['DOCUMENT_ID']}'>";
+          echo "<div class='item-icon'>📄</div>";
+          echo "<div class='item-details'>";
+          echo "<div class='item-name'>" . htmlspecialchars($doc['NAME']) . "</div>";
+          echo "<div class='shared-by'>Megosztotta: " . htmlspecialchars($doc['SHARED_BY']) . "</div>";
+          echo "<div class='permission-badge permission-{$doc['PERMISSION']}'>";
+          echo $doc['PERMISSION'] === 'read' ? 'Olvasás' : 'Szerkesztés';
+          echo "</div>";
+          echo "</div>";
+          echo "</div>";
+        }
+        echo "</div>";
+      }
       ?>
     </div>
   </div>
@@ -54,6 +74,12 @@ $sharedLibraries = getSharedLibraries($_SESSION['user_id']);
       folder.addEventListener('click', () => {
         const folderId = folder.getAttribute('data-id');
         window.location.href = `library.php?id=${folderId}`;
+      });
+    });
+    document.querySelectorAll('.document-item').forEach(doc => {
+      doc.addEventListener('click', () => {
+        const docId = doc.getAttribute('data-id');
+        window.location.href = `view_document.php?id=${docId}`;
       });
     });
   </script>
