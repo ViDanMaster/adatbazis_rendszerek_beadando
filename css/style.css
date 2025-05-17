@@ -543,5 +543,7 @@ button:hover {
     justify-content: center;
     display: flex;
     flex-direction: row;
-    padding: 20px;
+}
+.alma button{
+    margin-left: 20%;
 }
