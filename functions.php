@@ -946,4 +946,118 @@ function avg_libShares()
     return $result['AVG_SHARED_LIBRARIES'];
 
 }
+
+
+
+function getSharedDocuments($userId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("
+            SELECT d.*, s.permission, u.username as shared_by
+            FROM Documents d
+            JOIN DocumentShares s ON d.document_id = s.document_id
+            JOIN Users u ON d.user_id = u.user_id
+            WHERE s.user_id = :user_id
+            ORDER BY d.name
+        ");
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error getting shared documents: " . $e->getMessage());
+        return [];
+    }
+}
+
+
+function getDocumentIdShares($documentId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("
+            SELECT s.*, u.username, u.email 
+            FROM DocumentShares s
+            JOIN Users u ON s.user_id = u.user_id
+            WHERE s.document_id = :document_id
+        ");
+        $stmt->execute([':document_id' => $documentId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error getting document shares: " . $e->getMessage());
+        return [];
+    }
+}
+
+function removeDocumentShare($document_id, $userId) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("DELETE FROM DocumentShares WHERE document_id = :document_id AND user_id = :user_id");
+        $stmt->execute([
+            ':document_id' => $document_id,
+            ':user_id' => $userId
+        ]);
+        
+        return true;
+    } catch (PDOException $e) {
+        error_log("Error removing document share: " . $e->getMessage());
+        return false;
+    }
+}
+function shareDocument($documentId, $sharedWithUserId, $permission = 'read') {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM DocumentShares 
+                                WHERE document_id = :document_id AND user_id = :user_id");
+        $stmt->execute([
+            ':document_id' => $documentId,
+            ':user_id' => $sharedWithUserId
+        ]);
+        
+        if ($stmt->fetchColumn() > 0) {
+            $stmt = $conn->prepare("UPDATE DocumentShares 
+                                   SET permission = :permission 
+                                   WHERE document_id = :document_id AND user_id = :user_id");
+            $stmt->execute([
+                ':permission' => $permission,
+                ':document_id' => $documentId,
+                ':user_id' => $sharedWithUserId
+            ]);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO documentShares (share_id, user_id, document_id, permission) 
+                                   VALUES (LIBSHARE_SEQ.NEXTVAL, :user_id, :document_id, :permission)");
+            $stmt->execute([
+                ':user_id' => $sharedWithUserId,
+                ':document_id' => $documentId,
+                ':permission' => $permission
+            ]);
+        }
+        
+        
+        return true;
+    } catch (PDOException $e) {
+        error_log("Sharing document error: " . $e->getMessage());
+        return false;
+    }
+}
+function getDocumentShares($document_id) {
+    global $conn;
+    
+    try {
+        $stmt = $conn->prepare("
+            SELECT s.*, u.username, u.email 
+            FROM DocumentShares s
+            JOIN Users u ON s.user_id = u.user_id
+            WHERE s.document_id = :document_id
+        ");
+        $stmt->execute([':document_id' => $document_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error getting document shares: " . $e->getMessage());
+        return [];
+    }
+}
+
+
 ?>

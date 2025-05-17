@@ -112,11 +112,7 @@ if (!isset($_SESSION['user_id'])) {
       contextMenu.style.top = `${e.pageY}px`;
       
       const shareOption = document.getElementById('share-item');
-      if (item.classList.contains('document-item')) {
-        shareOption.style.display = 'none';
-      } else {
-        shareOption.style.display = 'flex';
-      }
+      
       
       contextMenu.classList.add('active');
     }
@@ -149,9 +145,13 @@ if (!isset($_SESSION['user_id'])) {
     });
 
     document.getElementById('share-item').addEventListener('click', () => {
-      if (targetItem && targetItem.classList.contains('folder-item')) {
+      if (targetItem) {
         const folderId = targetItem.getAttribute('data-id');
+        if (targetItem.classList.contains('folder-item')) {
         window.location.href = `share_library.php?id=${folderId}`;
+        } else {
+          window.location.href = `share_document.php?id=${folderId}`;
+        }
       }
     });
 
