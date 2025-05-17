@@ -48,7 +48,7 @@ $sharedDocuments = getSharedDocuments($_SESSION['user_id']);
       }
 
       if (empty($sharedDocuments)) {
-        echo "<div class='empty-state'><p>Még nincsenek veled megosztott mappák.</p></div>";
+        echo "<div class='empty-state'><p>Még nincsenek veled megosztott dokumentumok.</p></div>";
       } else {
         echo "<div class='files-grid'>";
         foreach ($sharedDocuments as $doc) {

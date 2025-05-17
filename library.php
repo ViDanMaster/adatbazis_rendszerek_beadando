@@ -158,12 +158,7 @@ $subLibraries = getSubLibraries($libraryId);
       const editOption = document.getElementById('edit-item');
       const deleteOption = document.getElementById('delete-item');
       
-      // Hide share option for documents
-      if (item.classList.contains('document-item')) {
-        shareOption.style.display = 'none';
-      } else {
-        shareOption.style.display = 'flex';
-      }
+     
       
       // Hide edit and delete options if user doesn't have edit permissions
       <?php if (!$canEdit): ?>
@@ -203,9 +198,13 @@ $subLibraries = getSubLibraries($libraryId);
     });
 
     document.getElementById('share-item').addEventListener('click', () => {
-      if (targetItem && targetItem.classList.contains('folder-item')) {
+      if (targetItem) {
         const folderId = targetItem.getAttribute('data-id');
+        if (targetItem.classList.contains('folder-item')) {
         window.location.href = `share_library.php?id=${folderId}`;
+        } else {
+          window.location.href = `share_document.php?id=${folderId}`;
+        }
       }
     });
 

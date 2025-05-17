@@ -656,7 +656,7 @@ function add_eventt($user_id, $title, $description, $start_time, $end_time, $loc
     if (strpos($msg, 'A végdátum nem lehet korábban, mint a kezdődátum.') !== false) {
         $error = 'A végdátum nem lehet korábban, mint a kezdődátum!';
     } else {
-        $error = "Ismeretlen adatbázishiba.";
+        $error = "A végdátum nem lehet korábban, mint a kezdődátum!";
     }
     header("Location: add_event.php?error=" . urlencode($error));
     exit;}
@@ -684,7 +684,7 @@ function edit_eventt($eventID, $title, $description, $start_time, $end_time, $lo
     if (strpos($msg, 'A végdátum nem lehet korábban, mint a kezdődátum.') !== false) {
         $error = 'A végdátum nem lehet korábban, mint a kezdődátum!';
     } else {
-        $error = "Ismeretlen adatbázishiba.";
+        $error = "A végdátum nem lehet korábban, mint a kezdődátum!";
     }
     header("Location: event_edit.php?error=" . urlencode($error));
     exit;}
