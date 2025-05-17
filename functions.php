@@ -906,10 +906,10 @@ function avg_docShares(){
     $sql = "
         SELECT ROUND(AVG(shared_count)) AS avg_shared_documents
         FROM (
-            SELECT COUNT(ds.share_id) AS shared_count
+            SELECT u.user_id, COUNT(ds.share_id) AS shared_count
             FROM Users u
-            JOIN Documents d ON u.user_id = d.user_id
-            JOIN DocumentShares ds ON d.document_id = ds.document_id
+            LEFT JOIN Documents d ON u.user_id = d.user_id
+            LEFT JOIN DocumentShares ds ON d.document_id = ds.document_id
             GROUP BY u.user_id
         )
     ";
@@ -930,10 +930,10 @@ function avg_libShares()
     $sql = "
         SELECT ROUND(AVG(shared_count)) AS avg_shared_libraries
         FROM (
-            SELECT COUNT(ls.share_id) AS shared_count
+            SELECT u.user_id, COUNT(ls.share_id) AS shared_count
             FROM Users u
-            JOIN Libraries l ON u.user_id = l.user_id
-            JOIN LibraryShares ls ON l.library_id = ls.library_id
+            LEFT JOIN Libraries l ON u.user_id = l.user_id
+            LEFT JOIN LibraryShares ls ON l.library_id = ls.library_id
             GROUP BY u.user_id
         )
     ";
