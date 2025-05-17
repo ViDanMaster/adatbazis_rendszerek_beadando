@@ -39,24 +39,32 @@ if (!isset($_SESSION['user_id'])) {
         $users = event_leaderboard();
         $doc_counts= document_leaderboard();
         $lib_counts = library_leaderboard();
+        $doc_shares = document_shares();
+        $lib_shares = library_shares();
+        $avg_docShares = avg_docShares() ?? 0;
+        $avg_libShares = avg_libShares() ?? 0;
 
         if (count($users) === 0) {
             echo "<p>Nincs felhasználó vagy esemény az adatbázisban.</p>";
         } else {
             echo "<table border='1' cellpadding='10' cellspacing='0' id='leaderboard'>";
-            echo "<tr><th colspan='3'>Átlagok</th></tr>";
-            echo "<tr><th>Események átlaga</th><th>Dokumentumok átlaga</th><th>Mappák átlaga</th></tr>";
-            echo "<tr><th>{$avg['AVG_EVENT_COUNT']}</th><th>{$avg['AVG_DOCUMENT_COUNT']}</th><th>{$avg['AVG_LIBRARY_COUNT']}</th></tr>";
+            echo "<tr><th colspan='5'>Átlagok</th></tr>";
+            echo "<tr><th>Események átlaga</th><th>Dokumentumok átlaga</th><th>Mappák átlaga</th><th>Könyvtár megosztások átlaga</th><th>Dokumentum megosztások átlaga</th></tr>";
+            echo "<tr><th>{$avg['AVG_EVENT_COUNT']}</th><th>{$avg['AVG_DOCUMENT_COUNT']}</th><th>{$avg['AVG_LIBRARY_COUNT']}</th><th>{$avg_libShares}</th><th>{$avg_docShares}</th></tr>";
 
 
             echo "<table border='1' cellpadding='10' cellspacing='0' id='leaderboard'>";
-            echo "<br><tr><th>Felhasználónév</th><th>Események száma</th><th>Dokumentumok</th><th>Könyvtárak</th></tr>";
+            echo "<br><tr><th>Felhasználónév</th><th>Események száma</th><th>Dokumentumok</th><th>Könyvtárak</th><th>Megosztások</th></tr>";
 
             foreach ($users as $user) {
                 $username = $user['USERNAME'];
                 $event_count = $user['EVENT_COUNT'];
                 $doc_count= isset($doc_counts[$username]) ? $doc_counts[$username] : 0;
                 $lib_count = isset($lib_counts[$username]) ? $lib_counts[$username] : 0;
+                $docShare= isset($doc_shares[$username]) ? $doc_shares[$username] : 0;
+                $libShare = isset($lib_shares[$username]) ? $lib_shares[$username] : 0;
+
+                $userShares = $docShare+$libShare;
 
                 if ($event_count == 0 && $doc_count == 0 && $lib_count == 0) {
                     continue;
@@ -67,6 +75,7 @@ if (!isset($_SESSION['user_id'])) {
                 echo "<td>" . htmlspecialchars($event_count) . "</td>";
                 echo "<td>" . htmlspecialchars($doc_count) . "</td>";
                 echo "<td>" . htmlspecialchars($lib_count) . "</td>";
+                echo "<td>" . htmlspecialchars($userShares) . "</td>";
                 echo "</tr>";
             }
 

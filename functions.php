@@ -877,7 +877,7 @@ function document_shares()
 
     $sql = "
         SELECT
-            u.username
+            u.username,
             COUNT(ds.share_id) AS shared_documents
         FROM Users u
         JOIN Documents d ON u.user_id = d.user_id
@@ -933,7 +933,7 @@ function avg_libShares()
             SELECT COUNT(ls.share_id) AS shared_count
             FROM Users u
             JOIN Libraries l ON u.user_id = l.user_id
-            JOIN LibraryShares ls ON d.document_id = ls.document_id
+            JOIN LibraryShares ls ON l.library_id = ls.library_id
             GROUP BY u.user_id
         )
     ";
